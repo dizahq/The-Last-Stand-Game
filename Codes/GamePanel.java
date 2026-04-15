@@ -31,7 +31,7 @@ public class GamePanel extends JPanel {
         
         // 2. Load Assets
         // Note: Using your absolute path as requested
-        grassImage = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\grassBackground.png").getImage();
+        grassImage = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\grass.png").getImage();
         
         // 3. Initialize Objects
         obstacle = new Obstacle(200, 200, 50, 50);
