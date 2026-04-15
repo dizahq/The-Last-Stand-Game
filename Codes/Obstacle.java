@@ -13,7 +13,7 @@ public class Obstacle extends GameObject {
     Obstacle(int x, int y, int width, int height) {
         super(x, y, width, height);
 
-        image = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Intities\\rock1.png").getImage();
+        image = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\rock1.png").getImage();
         
         // Optional: Safety clamp to ensure wall doesn't exceed screen bounds 
         // using the dynamic frame sizes from your main class.

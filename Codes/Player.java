@@ -20,11 +20,11 @@ public class Player extends GameObject {
     Player(int x, int y, Obstacle obstacle, JPanel gamePanel) {
         super(x, y, 40, 40);
 
-        upPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Intities\\upPlayer.png").getImage();
-        downPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Intities\\downPlayer.png").getImage();
-        leftPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Intities\\leftPlayer.png").getImage();
-        rightPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Intities\\rightPlayer.png").getImage();
-        currentImage = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Intities\\downPlayer.png").getImage();
+        upPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\upPlayer.png").getImage();
+        downPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\downPlayer.png").getImage();
+        leftPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\leftPlayer.png").getImage();
+        rightPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\rightPlayer.png").getImage();
+        currentImage = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\downPlayer.png").getImage();
 
     }
 
