@@ -4,7 +4,7 @@ import java.awt.Graphics;
 
 //It handles the common properties like position, size, and collision logic.
 abstract class GameObject {
-    // Protected variables so child classes (Player, Wall) can access them directly
+    // Protected variables so child classes can access them directly
     protected int x, y, width, height; 
 
     // Constructor to set the initial position and size of the object
