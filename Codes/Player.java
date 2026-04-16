@@ -22,31 +22,31 @@ public class Player extends GameObject {
 
         //Load arrays of images for animation (currently not used, but set up for future enhancement)
         walkUp = new Image[]{
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\up1.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\up2.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\up3.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\up4.png").getImage()
+            new ImageIcon("Entities/Player/up1.png").getImage(),
+            new ImageIcon("Entities/Player/up2.png").getImage(),
+            new ImageIcon("Entities/Player/up3.png").getImage(),
+            new ImageIcon("Entities/Player/up4.png").getImage()
         };
 
         walkDown = new Image[]{
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\down1.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\down2.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\down3.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\down4.png").getImage()
+            new ImageIcon("Entities/Player/down1.png").getImage(),
+            new ImageIcon("Entities/Player/down2.png").getImage(),
+            new ImageIcon("Entities/Player/down3.png").getImage(),
+            new ImageIcon("Entities/Player/down4.png").getImage()
         };
 
         walkRight = new Image[]{
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\right1.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\right2.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\right3.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\right4.png").getImage()
+            new ImageIcon("Entities/Player/right1.png").getImage(),
+            new ImageIcon("Entities/Player/right2.png").getImage(),
+            new ImageIcon("Entities/Player/right3.png").getImage(),
+            new ImageIcon("Entities/Player/right4.png").getImage()
         };
 
         walkLeft = new Image[]{
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\left1.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\left2.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\left3.png").getImage(),
-            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\left4.png").getImage()
+            new ImageIcon("Entities/Player/left1.png").getImage(),
+            new ImageIcon("Entities/Player/left2.png").getImage(),
+            new ImageIcon("Entities/Player/left3.png").getImage(),
+            new ImageIcon("Entities/Player/left4.png").getImage()
         };
         currentImage = walkDown[0]; // Start with the first frame of walking down as the default image
     }
@@ -121,4 +121,6 @@ public class Player extends GameObject {
             this.y = oldY;
         }
     }
+
+    //C:\Users\dizah\Documents\GitHub\The-Last-Stand-Game\Codes
 }
