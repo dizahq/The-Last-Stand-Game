@@ -1,31 +1,77 @@
 package Codes;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
-
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 public class Player extends GameObject {
-    // Constant speed to avoid re-allocating memory for variables
-    private static final int SPEED = 5;
-
-    // Cache boundaries to avoid calling static methods every single key press
-    private int maxX = TheLastStand.getFrameWidth();
+    private static final int SPEED = 5; // Constant speed to avoid re-allocating memory for variables 
+    private int maxX = TheLastStand.getFrameWidth(); // Cache boundaries to avoid calling static methods every single key press
     private int maxY = TheLastStand.getFrameHeight();
-    private Image upPlayer, downPlayer, leftPlayer, rightPlayer, currentImage;
+    private Image [] walkUp, walkDown, walkLeft, walkRight; // Arrays for animation frames (future enhancement
+    private static final int ANIMATION_SPEED = 5; // Assuming 5 frames per direction for smoother animation
+    private Image currentImage; // Current image to draw (can be optimized by using a single variable instead of multiple)
+    private int frameIndex = 0;   // Current frame to show
+    private int animationTick = 0; // Timer to slow down the animation
 
     Player(int x, int y, Obstacle obstacle, JPanel gamePanel) {
         super(x, y, 40, 40);
 
-        upPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\upPlayer.png").getImage();
-        downPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\downPlayer.png").getImage();
-        leftPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\leftPlayer.png").getImage();
-        rightPlayer = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\rightPlayer.png").getImage();
-        currentImage = new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\downPlayer.png").getImage();
+        //Load arrays of images for animation (currently not used, but set up for future enhancement)
+        walkUp = new Image[]{
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\up1.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\up2.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\up3.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\up4.png").getImage()
+        };
 
+        walkDown = new Image[]{
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\down1.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\down2.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\down3.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\down4.png").getImage()
+        };
+
+        walkRight = new Image[]{
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\right1.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\right2.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\right3.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\right4.png").getImage()
+        };
+
+        walkLeft = new Image[]{
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\left1.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\left2.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\left3.png").getImage(),
+            new ImageIcon("C:\\Users\\dizah\\Documents\\GitHub\\The-Last-Stand-Game\\Entities\\left4.png").getImage()
+        };
+        currentImage = walkDown[0]; // Start with the first frame of walking down as the default image
+    }
+
+    private void updateAnimation(Image[] frames) {
+        animationTick++;
+        if (animationTick >= ANIMATION_SPEED) {
+            animationTick = 0;
+            frameIndex++;
+            if (frameIndex >= frames.length) {
+                frameIndex = 0;
+            }
+        }
+        currentImage = frames[frameIndex];
+    }
+
+    @Override
+    public Rectangle getBounds() {
+        // We make the hitbox 20px wide and 10px tall, positioned at the feet
+        int hbWidth = width - 16;
+        int hbHeight = 12;
+        int offsetX = x + 8; // Centers it
+        int offsetY = y + (height - hbHeight);   // At the very bottom
+    
+        return new Rectangle(offsetX, offsetY, hbWidth, hbHeight);
     }
 
    @Override
@@ -49,28 +95,28 @@ public class Player extends GameObject {
         // Combine WASD and Arrows into single checks to reduce branching
         if (key == KeyEvent.VK_W || key == KeyEvent.VK_UP || keyChar == 'w') {
             this.y = Math.max(0, this.y - SPEED);
-            currentImage = upPlayer;
+            updateAnimation(walkUp);
         }
 
         //DOWN
         else if (key == KeyEvent.VK_S || key == KeyEvent.VK_DOWN || keyChar == 's') {
             this.y = Math.min(maxY - height, this.y + SPEED);
-            currentImage = downPlayer;
+            updateAnimation(walkDown);
         }
         // LEFT
         if (key == KeyEvent.VK_A || key == KeyEvent.VK_LEFT || keyChar == 'a') {
             this.x = Math.max(0, this.x - SPEED);
-            currentImage = leftPlayer;
+            updateAnimation(walkLeft);
         } 
         // RIGHT
         else if (key == KeyEvent.VK_D || key == KeyEvent.VK_RIGHT || keyChar == 'd') {
             this.x = Math.min(maxX - width, this.x + SPEED);
-            currentImage = rightPlayer;
+            updateAnimation(walkRight);
         }
 
         // 3. Collision Check
         // Only revert if a change actually happened and an intersection exists
-        if ((this.x != oldX || this.y != oldY) && this.intersects(obstacle)) {
+        if (this.getBounds().intersects(obstacle.getBounds())) {
             this.x = oldX;
             this.y = oldY;
         }

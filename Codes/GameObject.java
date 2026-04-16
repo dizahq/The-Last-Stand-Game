@@ -1,5 +1,6 @@
 package Codes;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 
 
 //It handles the common properties like position, size, and collision logic.
@@ -15,7 +16,17 @@ abstract class GameObject {
         this.height = height;
     }
 
-    //Checks if this object's rectangle overlaps with another GameObject's rectangle. 
+    //Returns the "Hitbox" rectangle
+    public Rectangle getBounds() {
+        return new Rectangle(x, y, width, height);
+    }
+
+    //Compares Hitboxes, not image sizes
+    public boolean intersects(GameObject other) {
+        return this.getBounds().intersects(other.getBounds());
+    }
+
+   /*  //Checks if this object's rectangle overlaps with another GameObject's rectangle. 
     public boolean intersects(GameObject other) {
         // Logic: If any of these conditions are true, the objects are NOT colliding.
         return x < other.x + other.width &&   // Is this object's left side to the left of other's right?
@@ -23,7 +34,7 @@ abstract class GameObject {
                y < other.y + other.height &&  // Is this object's top above other's bottom?
                y + height > other.y;          // Is this object's bottom below other's top?
     }
-
+*/
     //Defines how the specific object should be painted on screen.
     public abstract void draw(Graphics g);
 }

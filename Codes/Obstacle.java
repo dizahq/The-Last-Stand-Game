@@ -2,7 +2,7 @@ package Codes;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
-
+import java.awt.Rectangle;
 import javax.swing.ImageIcon;
 
 //Represents a static obstacle that the player must avoid.
@@ -22,6 +22,13 @@ public class Obstacle extends GameObject {
         if (this.x + this.width > maxX) this.width = maxX - this.x;
         if (this.y + this.height > maxY) this.height = maxY - this.y;
     }
+
+    @Override
+    public Rectangle getBounds() {
+        // The rock collision is usually just the bottom base
+        return new Rectangle(x + 5, y + 25, width - 10, height - 30);
+    }
+    
 
     // Renders the wall as a Red rectangle on the screen.
     @Override
