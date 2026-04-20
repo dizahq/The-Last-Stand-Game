@@ -20,10 +20,10 @@ public class PauseMenuPanel extends JPanel{
 
         title = new JLabel("Game Paused");
         // Parameters: Name, Style, Size
-        title.setFont(new Font("Arial", Font.BOLD, 24));
+        title.setFont(new Font("Arial", Font.BOLD, 35));
 
-        int width = TheLastStand.getFrameWidth()/4;
-        int height = TheLastStand.getFrameHeight()/3;
+        int width = TheLastStand.getFrameWidth()/5;
+        int height = TheLastStand.getFrameHeight()/4;
         int x = (TheLastStand.getFrameWidth() - width) / 2;
         int y = (TheLastStand.getFrameHeight() - height) / 2;
 
@@ -31,9 +31,9 @@ public class PauseMenuPanel extends JPanel{
         setBounds(x, y, width, height);
         setVisible(false);
 
-        backToMainMenu.setPreferredSize(new Dimension(150, 30));
-        resume.setPreferredSize(new Dimension(150, 30));
-        exit.setPreferredSize(new Dimension(150, 30));
+        backToMainMenu.setPreferredSize(new Dimension(200, 50));
+        resume.setPreferredSize(new Dimension(200, 50));
+        exit.setPreferredSize(new Dimension(200, 50));
 
         backToMainMenu.addActionListener(e -> {
             backToMainMenu();
