@@ -7,18 +7,18 @@ import javax.swing.ImageIcon;
 
 //Represents a static obstacle that the player must avoid.
 public class Obstacle extends GameObject {
+    private int maxX, maxY;
     private Image image; // Optional: If you want to use an image instead of a solid color  
     
     // Constructor passing coordinates and dimensions to the GameObject parent.
-    Obstacle(int x, int y, int width, int height) {
+    Obstacle(int x, int y, int width, int height, int panelWidth, int panelHeight) {
         super(x, y, width, height);
-
+        this.maxX = panelWidth;
+        this.maxY = panelHeight;
         image = new ImageIcon("Entities/Object/rock1.png").getImage();
         
         // Optional: Safety clamp to ensure wall doesn't exceed screen bounds 
         // using the dynamic frame sizes from your main class.
-        int maxX = TheLastStand.getFrameWidth();
-        int maxY = TheLastStand.getFrameHeight();
         if (this.x + this.width > maxX) this.width = maxX - this.x;
         if (this.y + this.height > maxY) this.height = maxY - this.y;
     }
