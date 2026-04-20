@@ -17,7 +17,7 @@ public class TheLastStand extends JFrame{
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
 
-        // Testss:
+        // Tests:
         System.out.println("Your screen size is " + frameWidth + "x" + frameHeight);
     }
 
