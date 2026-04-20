@@ -1,6 +1,5 @@
 package Codes;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.function.Consumer;
@@ -8,47 +7,36 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class PauseMenuPanel extends JPanel{
+public class PauseMenuPanel extends OverlayPanel{
     private Consumer<String> switchPanel;
-    JLabel title = new JLabel("Game Paused");
-    private JButton backToMainMenu = new JButton("Back to Main Menu");
-    private JButton resume = new JButton("Resume");
-    private JButton exit = new JButton("Exit");
+    private GamePanel game;
+
+    private JPanel container;
+    private JLabel title = new JLabel("Game Paused");
+    private JButton backToMainMenuBtn = new JButton("Back to Main Menu");
+    private JButton resumeBtn = new JButton("Resume");
     
-    public PauseMenuPanel(Consumer<String> switchPanel){
+    public PauseMenuPanel(int panelWidth, int panelHeight, Consumer<String> switchPanel, GamePanel game){
+        super(panelWidth, panelHeight);
         this.switchPanel = switchPanel;
+        this.game = game;
+        container = getContainerPanel();
 
-        title = new JLabel("Game Paused");
         // Parameters: Name, Style, Size
-        title.setFont(new Font("Arial", Font.BOLD, 35));
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+        backToMainMenuBtn.setPreferredSize(new Dimension(150, 30));
+        resumeBtn.setPreferredSize(new Dimension(150, 30));
 
-        int width = TheLastStand.getFrameWidth()/5;
-        int height = TheLastStand.getFrameHeight()/4;
-        int x = (TheLastStand.getFrameWidth() - width) / 2;
-        int y = (TheLastStand.getFrameHeight() - height) / 2;
-
-        setBackground(Color.GRAY);
-        setBounds(x, y, width, height);
-        setVisible(false);
-
-        backToMainMenu.setPreferredSize(new Dimension(200, 50));
-        resume.setPreferredSize(new Dimension(200, 50));
-        exit.setPreferredSize(new Dimension(200, 50));
-
-        backToMainMenu.addActionListener(e -> {
+        backToMainMenuBtn.addActionListener(e -> {
             backToMainMenu();
         });
-        resume.addActionListener(e -> {
+        resumeBtn.addActionListener(e -> {
             resume();
         });
-        exit.addActionListener(e ->{
-            System.exit(0);
-        });
 
-        add(title);
-        add(backToMainMenu);
-        add(resume);
-        add(exit);
+        container.add(title);
+        container.add(backToMainMenuBtn);
+        container.add(resumeBtn);
     }
 
     public void backToMainMenu(){
@@ -58,6 +46,7 @@ public class PauseMenuPanel extends JPanel{
     }
     public void resume(){
         //resume thread
+        game.setFocusable(true);
         setVisible(false);
     }
 }
