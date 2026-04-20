@@ -2,7 +2,6 @@ package Codes;
 
 import java.awt.CardLayout;
 import java.awt.Color;
-
 import javax.swing.JPanel;
 
 public class MainPanel extends JPanel{
