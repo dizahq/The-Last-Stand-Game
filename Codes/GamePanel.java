@@ -37,7 +37,7 @@ public class GamePanel extends JPanel {
         setFocusable(true);
 
         // 2. Load Assets
-        grassImage = new ImageIcon("C:\\CMSC 12\\JAVA\\The-Last-Stand-Game\\Entities\\Background\\grass.png").getImage();
+        grassImage = new ImageIcon("Entities/Background/grass.png").getImage();
 
         // 3. Initialize Objects
         obstacle = new Obstacle(200, 200, 100, 100);
