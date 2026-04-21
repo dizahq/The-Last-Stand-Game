@@ -10,16 +10,18 @@ import javax.swing.JPanel;
 
 public class PauseMenuPanel extends JPanel{
     private Consumer<String> switchPanel;
+    private GameLayeredPane gameContainer;
+
     JLabel title = new JLabel("Game Paused");
     private JButton backToMainMenu = new JButton("Back to Main Menu");
     private JButton resume = new JButton("Resume");
     private JButton exit = new JButton("Exit");
     
-    public PauseMenuPanel(Consumer<String> switchPanel){
+    public PauseMenuPanel(Consumer<String> switchPanel, GameLayeredPane gameContainer){
         this.switchPanel = switchPanel;
+        this.gameContainer = gameContainer;
 
         title = new JLabel("Game Paused");
-        // Parameters: Name, Style, Size
         title.setFont(new Font("Arial", Font.BOLD, 35));
 
         int width = TheLastStand.getFrameWidth()/5;
@@ -42,7 +44,7 @@ public class PauseMenuPanel extends JPanel{
             resume();
         });
         exit.addActionListener(e ->{
-            System.exit(0);
+            exitGame();
         });
 
         add(title);
@@ -51,13 +53,20 @@ public class PauseMenuPanel extends JPanel{
         add(exit);
     }
 
+    public void resume(){
+        setVisible(false);
+        gameContainer.getGame().resumeGameThread();
+    }
+
     public void backToMainMenu(){
         // write file (save progress)
         setVisible(false);
+        gameContainer.getGame().stopGameThread();
         switchPanel.accept("mainMenu");
     }
-    public void resume(){
-        //resume thread
-        setVisible(false);
+
+    public void exitGame() {
+        gameContainer.getGame().stopGameThread();
+        System.exit(0);
     }
 }

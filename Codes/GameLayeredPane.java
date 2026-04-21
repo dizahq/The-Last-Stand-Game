@@ -6,13 +6,14 @@ import javax.swing.JLayeredPane;
 public class GameLayeredPane extends JLayeredPane{
     private Consumer<String> switchPanel;
 
-    private GamePanel game = new GamePanel(this);
+    private Game game;
     private PauseMenuPanel pauseMenu;
 
     public GameLayeredPane(Consumer<String> switchPanel){
         this.switchPanel = switchPanel;
 
-        pauseMenu = new PauseMenuPanel(switchPanel);
+        game = new Game(this);
+        pauseMenu = new PauseMenuPanel(switchPanel, this);
 
         add(game, JLayeredPane.DEFAULT_LAYER);
         add(pauseMenu, JLayeredPane.MODAL_LAYER);
@@ -21,7 +22,7 @@ public class GameLayeredPane extends JLayeredPane{
     public Consumer<String> getSwitchPanel() {
         return switchPanel;
     }
-    public GamePanel getGame() {
+    public Game getGame() {
         return game;
     }
     public PauseMenuPanel getPauseMenu() {

@@ -7,13 +7,13 @@ import javax.swing.JPanel;
 
 public class MainMenuPanel extends JPanel{
     private Consumer<String> switchPanel;
-    private GamePanel game;
+    private Game game;
 
     private JButton newGameBtn = new JButton("New Game");
     private JButton continueBtn = new JButton("Continue");
     private JButton exitBtn = new JButton("Exit Game"); 
     
-    public MainMenuPanel(Consumer<String> switchPanel, GamePanel game){
+    public MainMenuPanel(Consumer<String> switchPanel, Game game){
         this.switchPanel = switchPanel;
         this.game = game;
         
@@ -37,9 +37,11 @@ public class MainMenuPanel extends JPanel{
     public void newGame(){
         game.setCurrentLevel(0);
         switchPanel.accept("game");
+        game.startGameThread();
     }
     public void continueGame(){
         // file read
         switchPanel.accept("game");
+        game.startGameThread();
     }
 }
