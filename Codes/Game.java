@@ -39,7 +39,7 @@ public class Game extends JPanel implements Runnable {
         setLayout(null);
         setFocusable(true);
 
-        // LOad assets
+        // Load assets
         grassImage = new ImageIcon("Entities/Background/grass.png").getImage();
         
         // Initialize game objects
@@ -85,7 +85,7 @@ public class Game extends JPanel implements Runnable {
         gameThread.start();
 
         // test
-        System.out.println("[Game] Game thread starts.");
+        System.out.println("[Game] Game loop starts.");
     }
 
     // Pause loop
@@ -146,7 +146,7 @@ public class Game extends JPanel implements Runnable {
             long now = System.nanoTime();
             long elapsed = now - lastTime;
             lastTime = now;
-            lag =+ elapsed;
+            lag += elapsed;
 
             while (lag >= OPTIMAL_TIME) {
                 update();
