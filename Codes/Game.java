@@ -1,5 +1,7 @@
 package Codes;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -22,7 +24,9 @@ public class Game extends JPanel implements Runnable {
     private static final long OPTIMAL_TIME = 1_000_000_000L / TARGET_FPS;
 
     private Player player;
-    private Obstacle obstacle;
+    private List<Obstacle> obstacles = new ArrayList<>();
+    private List<Enemy> enemies = new ArrayList<>();
+    private static final int ENEMY_COUNT = 3; // how many enemies you want
     private Image grassImage;
 
     private int currentLevel;
@@ -45,8 +49,16 @@ public class Game extends JPanel implements Runnable {
         grassImage = new ImageIcon("Entities/Background/grass.png").getImage();
         
         // Initialize game objects
-        obstacle = new Obstacle(200, 200, 100, 100);
-        player = new Player(300, 100, obstacle, this);
+        obstacles.add(new Obstacle(200, 200, 100, 100));
+        obstacles.add(new Obstacle(400, 300, 100, 100));
+        obstacles.add(new Obstacle(600, 150, 100, 100));
+        player = new Player(300, 100, obstacles, this);
+
+        for (int i = 0; i < ENEMY_COUNT; i++) {
+            Enemy e = new Enemy(0, 0);
+            e.respawn(); // random edge position
+            enemies.add(e);
+        }
 
         // Pause button
         pauseBtn.setBounds(TheLastStand.getFrameWidth() - 125, 20, 100, 40);
@@ -172,9 +184,29 @@ public class Game extends JPanel implements Runnable {
     }
 
     private void update() {
-        player.update(heldKeys, obstacle);
-        // TODO: update enemies,  bullets, power-ups, wave logic
+        player.update(heldKeys, obstacles);
+
+    int centerX = TheLastStand.getFrameWidth() / 2;
+    int centerY = TheLastStand.getFrameHeight() / 2;
+
+    for (Enemy enemy : enemies) {
+        // Move towards center
+        enemy.moveTowards(centerX, centerY);
+
+        // Check collision with player
+        if (enemy.getBounds().intersects(player.getBounds())) {
+            lives--;                  // reduce life by 1
+            enemy.respawn();          // respawn enemy after hit
+            System.out.println("[Game] Player hit! Lives: " + lives);
+
+            if (lives <= 0) {
+                stopGameThread();
+                System.out.println("[Game] Game Over.");
+                // TODO: show game over screen
+            }
+        }
     }
+}
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -189,8 +221,10 @@ public class Game extends JPanel implements Runnable {
         }
 
         // Draw game ojects
-        if (obstacle != null) obstacle.draw(g);
+        for (Obstacle obs : obstacles) obs.draw(g);
         if (player != null) player.draw(g); 
+        for (Enemy enemy : enemies) enemy.draw(g);
+        if (player != null) player.draw(g); // draw player on top
     }
 
     public GameLayeredPane getGameContainer() {

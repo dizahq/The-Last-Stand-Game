@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
+import java.util.List;
 import java.util.Set;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -18,36 +19,36 @@ public class Player extends GameObject {
     private int frameIndex = 0;   // Current frame to show
     private int animationTick = 0; // Timer to slow down the animation
 
-    Player(int x, int y, Obstacle obstacle, JPanel gamePanel) {
+    Player(int x, int y, List<Obstacle> obstacles, JPanel gamePanel) {
         super(x, y, 60, 60);
 
         //Load arrays of images for animation (currently not used, but set up for future enhancement)
         walkUp = new Image[]{
-            new ImageIcon("Entities/Player/up1.png").getImage(),
-            new ImageIcon("Entities/Player/up2.png").getImage(),
-            new ImageIcon("Entities/Player/up3.png").getImage(),
-            new ImageIcon("Entities/Player/up4.png").getImage()
+            new ImageIcon("Entities/Enemy/up1.png").getImage(),
+            new ImageIcon("Entities/Enemy/up2.png").getImage(),
+            new ImageIcon("Entities/Enemy/up3.png").getImage(),
+            new ImageIcon("Entities/Enemy/up4.png").getImage()
         };
 
         walkDown = new Image[]{
-            new ImageIcon("Entities/Player/down1.png").getImage(),
-            new ImageIcon("Entities/Player/down2.png").getImage(),
-            new ImageIcon("Entities/Player/down3.png").getImage(),
-            new ImageIcon("Entities/Player/down4.png").getImage()
+            new ImageIcon("Entities/Enemy/down1.png").getImage(),
+            new ImageIcon("Entities/Enemy/down2.png").getImage(),
+            new ImageIcon("Entities/Enemy/down3.png").getImage(),
+            new ImageIcon("Entities/Enemy/down4.png").getImage()
         };
 
         walkRight = new Image[]{
-            new ImageIcon("Entities/Player/right1.png").getImage(),
-            new ImageIcon("Entities/Player/right2.png").getImage(),
-            new ImageIcon("Entities/Player/right3.png").getImage(),
-            new ImageIcon("Entities/Player/right4.png").getImage()
+            new ImageIcon("Entities/Enemy/right1.png").getImage(),
+            new ImageIcon("Entities/Enemy/right2.png").getImage(),
+            new ImageIcon("Entities/Enemy/right3.png").getImage(),
+            new ImageIcon("Entities/Enemy/right4.png").getImage()
         };
 
         walkLeft = new Image[]{
-            new ImageIcon("Entities/Player/left1.png").getImage(),
-            new ImageIcon("Entities/Player/left2.png").getImage(),
-            new ImageIcon("Entities/Player/left3.png").getImage(),
-            new ImageIcon("Entities/Player/left4.png").getImage()
+            new ImageIcon("Entities/Enemy/left1.png").getImage(),
+            new ImageIcon("Entities/Enemy/left2.png").getImage(),
+            new ImageIcon("Entities/Enemy/left3.png").getImage(),
+            new ImageIcon("Entities/Enemy/left4.png").getImage()
         };
         currentImage = walkDown[0]; // Start with the first frame of walking down as the default image
     }
@@ -84,7 +85,7 @@ public class Player extends GameObject {
         }
     }
 
-    public void update(Set<Integer> heldKeys, GameObject obstacle) {
+    public void update(Set<Integer> heldKeys, List<Obstacle> obstacles) {
         // 1. Snapshot current position before any movement
         //    so we can revert if a collision is detected
         int oldX = this.x;
@@ -119,10 +120,12 @@ public class Player extends GameObject {
         // 5. Collision check — if the player now overlaps the obstacle,
         //    revert both axes to the pre-move snapshot.
         //    This handles all 8 directions without needing per-axis collision logic
-        if (this.getBounds().intersects(obstacle.getBounds())) {
-            this.x = oldX;
-            this.y = oldY;
+        for (Obstacle obs : obstacles) {
+            if (getBounds().intersects(obs.getBounds())) {
+             // handle collision
+            break;
         }
+    }
     }
 
     public int getX() {
