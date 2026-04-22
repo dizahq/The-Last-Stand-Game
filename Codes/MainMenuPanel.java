@@ -32,15 +32,41 @@ public class MainMenuPanel extends JPanel{
         add(exitBtn);
 
         setBackground(Color.GREEN);
+        refreshButtons();
+
+        addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                refreshButtons();
+            }
+        });
+    }
+
+    public void refreshButtons() {
+        continueBtn.setEnabled(SaveManager.hasSave());
     }
 
     public void newGame(){
         game.setCurrentLevel(0);
+        game.setLives(4);
         switchPanel.accept("game");
         game.startGameThread();
     }
     public void continueGame(){
-        // file read
+        SaveData data = SaveManager.load();
+        // File read
+        if (data != null) {
+            // Restore game state from the save file
+            game.setCurrentLevel(data.currentLevel);
+            game.setLives(data.lives);
+            game.setPlayerPosition(data.playerX, data.playerY);
+            System.out.println("[MainMenuPanel] Continuing from: " + data);
+        } else {
+            // Save file wass corrupt/missing
+            System.err.println("[MainMenuPanel] No valid save found, startingnew.");
+            game.setCurrentLevel(0);
+            game.setLives(4);
+        }
+
         switchPanel.accept("game");
         game.startGameThread();
     }

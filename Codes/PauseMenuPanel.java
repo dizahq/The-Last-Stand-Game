@@ -59,13 +59,25 @@ public class PauseMenuPanel extends JPanel{
     }
 
     public void backToMainMenu(){
-        // write file (save progress)
+        Game game = gameContainer.getGame();
+
+        // Savee game progress
+        SaveData data = new SaveData(game.getCurrentLevel(), game.getLives(), game.getPlayerX(), game.getPlayerY());
+        boolean saved = SaveManager.save(data);
+        if (!saved) {
+            System.err.println("[PauseMenuPanel] Warning: progress can't be saved.");
+        }
+
         setVisible(false);
         gameContainer.getGame().stopGameThread();
         switchPanel.accept("mainMenu");
     }
 
     public void exitGame() {
+        Game game = gameContainer.getGame();
+        SaveData data = new SaveData(game.getCurrentLevel(), game.getLives(), game.getPlayerX(), game.getPlayerY());
+        SaveManager.save(data);
+
         gameContainer.getGame().stopGameThread();
         System.exit(0);
     }

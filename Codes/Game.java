@@ -24,7 +24,9 @@ public class Game extends JPanel implements Runnable {
     private Player player;
     private Obstacle obstacle;
     private Image grassImage;
+
     private int currentLevel;
+    private int lives = 4;
 
     private final Set<Integer> heldKeys = java.util.Collections.synchronizedSet(new HashSet<>());
     
@@ -200,5 +202,22 @@ public class Game extends JPanel implements Runnable {
     }
     public void setCurrentLevel(int level) {
         this.currentLevel = level;
+    }
+
+    public int getLives() {
+        return lives;
+    }
+    public void setLives(int lives) {
+        this.lives = lives;
+    }
+
+    public int getPlayerX() {
+        return player.getX();
+    }
+    public int getPlayerY() {
+        return player.getY();
+    }
+    public void setPlayerPosition(int x, int y) {
+        player.setPosition(x, y);
     }
 }
