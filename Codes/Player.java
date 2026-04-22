@@ -10,47 +10,74 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 public class Player extends GameObject {
-    private static final int SPEED = 2; // Constant speed to avoid re-allocating memory for variables 
-    private int maxX = TheLastStand.getFrameWidth(); // Cache boundaries to avoid calling static methods every single key press
+    private static final int SPEED = 2;
+    private int maxX = TheLastStand.getFrameWidth();
     private int maxY = TheLastStand.getFrameHeight();
-    private Image [] walkUp, walkDown, walkLeft, walkRight; // Arrays for animation frames (future enhancement
-    private static final int ANIMATION_SPEED = 5; // Assuming 5 frames per direction for smoother animation
-    private Image currentImage; // Current image to draw (can be optimized by using a single variable instead of multiple)
-    private int frameIndex = 0;   // Current frame to show
-    private int animationTick = 0; // Timer to slow down the animation
+    private static final int ANIMATION_SPEED = 5;
+    private Image currentImage;
+    private int frameIndex = 0;
+    private int animationTick = 0;
+
+    // 8 directional sprite arrays
+    private Image[] walkUp, walkDown, walkLeft, walkRight;
+    private Image[] walkUpRight, walkUpLeft, walkDownRight, walkDownLeft;
 
     Player(int x, int y, List<Obstacle> obstacles, JPanel gamePanel) {
         super(x, y, 60, 60);
 
-        //Load arrays of images for animation (currently not used, but set up for future enhancement)
+        // Cardinal directions
         walkUp = new Image[]{
-            new ImageIcon("Entities/Enemy/up1.png").getImage(),
-            new ImageIcon("Entities/Enemy/up2.png").getImage(),
-            new ImageIcon("Entities/Enemy/up3.png").getImage(),
-            new ImageIcon("Entities/Enemy/up4.png").getImage()
+            new ImageIcon("Entities/Player/Normal/up1.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/up2.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/up3.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/up4.png").getImage()
         };
-
         walkDown = new Image[]{
-            new ImageIcon("Entities/Enemy/down1.png").getImage(),
-            new ImageIcon("Entities/Enemy/down2.png").getImage(),
-            new ImageIcon("Entities/Enemy/down3.png").getImage(),
-            new ImageIcon("Entities/Enemy/down4.png").getImage()
+            new ImageIcon("Entities/Player/Normal/down1.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/down2.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/down3.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/down4.png").getImage()
         };
-
-        walkRight = new Image[]{
-            new ImageIcon("Entities/Enemy/right1.png").getImage(),
-            new ImageIcon("Entities/Enemy/right2.png").getImage(),
-            new ImageIcon("Entities/Enemy/right3.png").getImage(),
-            new ImageIcon("Entities/Enemy/right4.png").getImage()
-        };
-
         walkLeft = new Image[]{
-            new ImageIcon("Entities/Enemy/left1.png").getImage(),
-            new ImageIcon("Entities/Enemy/left2.png").getImage(),
-            new ImageIcon("Entities/Enemy/left3.png").getImage(),
-            new ImageIcon("Entities/Enemy/left4.png").getImage()
+            new ImageIcon("Entities/Player/Normal/left1.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/left2.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/left3.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/left4.png").getImage()
         };
-        currentImage = walkDown[0]; // Start with the first frame of walking down as the default image
+        walkRight = new Image[]{
+            new ImageIcon("Entities/Player/Normal/right1.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/right2.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/right3.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/right4.png").getImage()
+        };
+
+        // Diagonal directions
+        walkUpRight = new Image[]{
+            new ImageIcon("Entities/Player/Normal/upperdiagonal_right1.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/upperdiagonal_right2.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/upperdiagonal_right3.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/upperdiagonal_right4.png").getImage()
+        };
+        walkUpLeft = new Image[]{
+            new ImageIcon("Entities/Player/Normal/upperdiagonal_left1.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/upperdiagonal_right2.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/upperdiagonal_right3.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/upperdiagonal_right4.png").getImage()
+        };
+        walkDownRight = new Image[]{
+            new ImageIcon("Entities/Player/Normal/lowerdiagonal_right1.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/lowerdiagonal_right2.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/lowerdiagonal_right3.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/lowerdiagonal_right4.png").getImage()
+        };
+        walkDownLeft = new Image[]{
+            new ImageIcon("Entities/Player/Normal/lowerdiagonal_left1.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/lowerdiagonal_left2.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/lowerdiagonal_left3.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/lowerdiagonal_left4.png").getImage()
+        };
+
+        currentImage = walkDown[0]; // default idle frame
     }
 
     private void updateAnimation(Image[] frames) {
@@ -67,73 +94,59 @@ public class Player extends GameObject {
 
     @Override
     public Rectangle getBounds() {
-        // We make the hitbox 20px wide and 10px tall, positioned at the feet
         int hbWidth = width - 16;
         int hbHeight = 12;
-        int offsetX = x + 8; // Centers it
-        int offsetY = y + (height - hbHeight);   // At the very bottom
-    
+        int offsetX = x + 8;
+        int offsetY = y + (height - hbHeight);
         return new Rectangle(offsetX, offsetY, hbWidth, hbHeight);
     }
 
-   @Override
+    @Override
     public void draw(Graphics g) {
         if (currentImage != null && currentImage.getWidth(null) != -1) {
             g.drawImage(currentImage, x, y, width, height, null);
         } else {
-           g.drawImage(currentImage, x, y, width, height, null);
+            g.setColor(java.awt.Color.BLUE);
+            g.fillRect(x, y, width, height);
         }
     }
 
     public void update(Set<Integer> heldKeys, List<Obstacle> obstacles) {
-        // 1. Snapshot current position before any movement
-        //    so we can revert if a collision is detected
         int oldX = this.x;
         int oldY = this.y;
 
-        // 2. Check which keys are currently held down
-        //    Using a Set allows multiple keys to be detected simultaneously, enabling smooth 8-directional movement
         boolean movingUp    = heldKeys.contains(KeyEvent.VK_W) || heldKeys.contains(KeyEvent.VK_UP);
         boolean movingDown  = heldKeys.contains(KeyEvent.VK_S) || heldKeys.contains(KeyEvent.VK_DOWN);
         boolean movingLeft  = heldKeys.contains(KeyEvent.VK_A) || heldKeys.contains(KeyEvent.VK_LEFT);
         boolean movingRight = heldKeys.contains(KeyEvent.VK_D) || heldKeys.contains(KeyEvent.VK_RIGHT);
 
-        // 3. Apply movement independently per axis
-        //    Math.max/min clamps the position within screen boundaries eparating X and Y allows diagonal movement (e.g. W+D moves up-right)
         if (movingUp)    this.y = Math.max(0,             this.y - SPEED);
         if (movingDown)  this.y = Math.min(maxY - height, this.y + SPEED);
         if (movingLeft)  this.x = Math.max(0,             this.x - SPEED);
         if (movingRight) this.x = Math.min(maxX - width,  this.x + SPEED);
 
-        // 4. Resolve animation based on direction combo
-        //    Diagonals are checked first since they're more specific; horizontal facing is preferred for diagonal sprites
-        if      (movingUp   && movingRight) updateAnimation(walkRight);
-        else if (movingUp   && movingLeft)  updateAnimation(walkLeft);
-        else if (movingDown && movingRight) updateAnimation(walkRight);
-        else if (movingDown && movingLeft)  updateAnimation(walkLeft);
-        else if (movingUp)                  updateAnimation(walkUp);
-        else if (movingDown)                updateAnimation(walkDown);
-        else if (movingLeft)                updateAnimation(walkLeft);
-        else if (movingRight)               updateAnimation(walkRight);
-        // No else — if no key is held, currentImage stays on the last frame (idle pose)
+        // 8-directional animation
+        if      (movingUp   && movingRight) updateAnimation(walkUpRight);   // ↗
+        else if (movingUp   && movingLeft)  updateAnimation(walkUpLeft);    // ↖
+        else if (movingDown && movingRight) updateAnimation(walkDownRight); // ↘
+        else if (movingDown && movingLeft)  updateAnimation(walkDownLeft);  // ↙
+        else if (movingUp)                  updateAnimation(walkUp);        // ↑
+        else if (movingDown)                updateAnimation(walkDown);      // ↓
+        else if (movingLeft)                updateAnimation(walkLeft);      // ←
+        else if (movingRight)               updateAnimation(walkRight);     // →
 
-        // 5. Collision check — if the player now overlaps the obstacle,
-        //    revert both axes to the pre-move snapshot.
-        //    This handles all 8 directions without needing per-axis collision logic
+        // Collision check
         for (Obstacle obs : obstacles) {
             if (getBounds().intersects(obs.getBounds())) {
-             // handle collision
-            break;
+                this.x = oldX;
+                this.y = oldY;
+                break;
+            }
         }
     }
-    }
 
-    public int getX() {
-        return x;
-    }
-    public int getY() {
-        return y;
-    }
+    public int getX() { return x; }
+    public int getY() { return y; }
     public void setPosition(int x, int y) {
         this.x = x;
         this.y = y;
