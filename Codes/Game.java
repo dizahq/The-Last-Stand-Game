@@ -187,27 +187,27 @@ public class Game extends JPanel implements Runnable {
     private void update() {
         player.update(heldKeys, obstacles);
 
-    int centerX = panelWidth / 2;
-    int centerY = panelHeight / 2;
+        int centerX = panelWidth / 2;
+        int centerY = panelHeight / 2;
 
-    for (Enemy enemy : enemies) {
-        // Move towards center
-        enemy.moveTowards(centerX, centerY);
+        for (Enemy enemy : enemies) {
+            // Move towards center
+            enemy.moveTowards(centerX, centerY);
 
-        // Check collision with player
-        if (enemy.getBounds().intersects(player.getBounds())) {
-            lives--;                  // reduce life by 1
-            enemy.respawn();          // respawn enemy after hit
-            System.out.println("[Game] Player hit! Lives: " + lives);
+            // Check collision with player
+            if (enemy.getBounds().intersects(player.getBounds())) {
+                lives--;                  // reduce life by 1
+                enemy.respawn();          // respawn enemy after hit
+                System.out.println("[Game] Player hit! Lives: " + lives);
 
-            if (lives <= 0) {
+                if (lives <= 0) {
                 stopGameThread();
                 System.out.println("[Game] Game Over.");
                 // TODO: show game over screen
+                }
             }
         }
     }
-}
 
     @Override
     protected void paintComponent(Graphics g) {

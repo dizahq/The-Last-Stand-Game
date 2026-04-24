@@ -13,7 +13,7 @@ public class Player extends GameObject {
     private static final int SPEED = 2;
     private int maxX;
     private int maxY;
-    private static final int ANIMATION_SPEED = 5;
+    private static final int ANIMATION_SPEED = 3;
     private Image currentImage;
     private int frameIndex = 0;
     private int animationTick = 0;
@@ -23,7 +23,7 @@ public class Player extends GameObject {
     private Image[] walkUpRight, walkUpLeft, walkDownRight, walkDownLeft;
 
     Player(int x, int y, int panelWidth, int panelHeight, List<Obstacle> obstacles, JPanel gamePanel) {
-        super(x, y, 60, 60);
+        super(x, y, 40, 60);
         this.maxX = panelWidth;
         this.maxY = panelHeight;
 
@@ -62,9 +62,9 @@ public class Player extends GameObject {
         };
         walkUpLeft = new Image[]{
             new ImageIcon("Entities/Player/Normal/upperdiagonal_left1.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/upperdiagonal_right2.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/upperdiagonal_right3.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/upperdiagonal_right4.png").getImage()
+            new ImageIcon("Entities/Player/Normal/upperdiagonal_left2.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/upperdiagonal_left3.png").getImage(),
+            new ImageIcon("Entities/Player/Normal/upperdiagonal_left4.png").getImage()
         };
         walkDownRight = new Image[]{
             new ImageIcon("Entities/Player/Normal/lowerdiagonal_right1.png").getImage(),
@@ -117,25 +117,25 @@ public class Player extends GameObject {
         int oldX = this.x;
         int oldY = this.y;
 
-        boolean movingUp    = heldKeys.contains(KeyEvent.VK_W) || heldKeys.contains(KeyEvent.VK_UP);
+        boolean movingUp = heldKeys.contains(KeyEvent.VK_W) || heldKeys.contains(KeyEvent.VK_UP);
         boolean movingDown  = heldKeys.contains(KeyEvent.VK_S) || heldKeys.contains(KeyEvent.VK_DOWN);
         boolean movingLeft  = heldKeys.contains(KeyEvent.VK_A) || heldKeys.contains(KeyEvent.VK_LEFT);
         boolean movingRight = heldKeys.contains(KeyEvent.VK_D) || heldKeys.contains(KeyEvent.VK_RIGHT);
 
-        if (movingUp)    this.y = Math.max(0,             this.y - SPEED);
+        if (movingUp) this.y = Math.max(0, this.y - SPEED);
         if (movingDown)  this.y = Math.min(maxY - height, this.y + SPEED);
-        if (movingLeft)  this.x = Math.max(0,             this.x - SPEED);
-        if (movingRight) this.x = Math.min(maxX - width,  this.x + SPEED);
+        if (movingLeft)  this.x = Math.max(0, this.x - SPEED);
+        if (movingRight) this.x = Math.min(maxX - width, this.x + SPEED);
 
         // 8-directional animation
-        if      (movingUp   && movingRight) updateAnimation(walkUpRight);   // ↗
-        else if (movingUp   && movingLeft)  updateAnimation(walkUpLeft);    // ↖
+        if (movingUp && movingRight) updateAnimation(walkUpRight);   // ↗
+        else if (movingUp && movingLeft) updateAnimation(walkUpLeft);    // ↖
         else if (movingDown && movingRight) updateAnimation(walkDownRight); // ↘
-        else if (movingDown && movingLeft)  updateAnimation(walkDownLeft);  // ↙
-        else if (movingUp)                  updateAnimation(walkUp);        // ↑
-        else if (movingDown)                updateAnimation(walkDown);      // ↓
-        else if (movingLeft)                updateAnimation(walkLeft);      // ←
-        else if (movingRight)               updateAnimation(walkRight);     // →
+        else if (movingDown && movingLeft) updateAnimation(walkDownLeft);  // ↙
+        else if (movingUp) updateAnimation(walkUp);        // ↑
+        else if (movingDown) updateAnimation(walkDown);      // ↓
+        else if (movingLeft) updateAnimation(walkLeft);      // ←
+        else if (movingRight) updateAnimation(walkRight);     // →
 
         // Collision check
         for (Obstacle obs : obstacles) {
@@ -149,6 +149,7 @@ public class Player extends GameObject {
 
     public int getX() { return x; }
     public int getY() { return y; }
+
     public void setPosition(int x, int y) {
         this.x = x;
         this.y = y;

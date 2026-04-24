@@ -9,6 +9,7 @@ public class TheLastStand extends JFrame{
     private int frameHeight = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight();
     
     MainLayeredPane mainLayeredPane;
+    
     public TheLastStand(){
         setBounds(0, 0, frameWidth, frameHeight);
         setUndecorated(true);
