@@ -1,6 +1,5 @@
 package Codes;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.function.Consumer;
@@ -8,30 +7,23 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class PauseMenuPanel extends JPanel{
+public class PauseMenuPanel extends OverlayPanel{
+    private int panelWidth, panelHeight;
     private Consumer<String> switchPanel;
-    private GameLayeredPane gameContainer;
+    private Game game;
 
-    JLabel title = new JLabel("Game Paused");
+    private JPanel container = getContainerPanel();
+    private JLabel title = new JLabel("Game Paused");
     private JButton backToMainMenu = new JButton("Back to Main Menu");
     private JButton resume = new JButton("Resume");
     private JButton exit = new JButton("Exit");
     
-    public PauseMenuPanel(Consumer<String> switchPanel, GameLayeredPane gameContainer){
+    public PauseMenuPanel(int panelWidth, int panelHeight, Consumer<String> switchPanel, Game game){
+        super(panelWidth, panelHeight);
         this.switchPanel = switchPanel;
-        this.gameContainer = gameContainer;
+        this.game = game;
 
-        title = new JLabel("Game Paused");
         title.setFont(new Font("Arial", Font.BOLD, 35));
-
-        int width = TheLastStand.getFrameWidth()/5;
-        int height = TheLastStand.getFrameHeight()/4;
-        int x = (TheLastStand.getFrameWidth() - width) / 2;
-        int y = (TheLastStand.getFrameHeight() - height) / 2;
-
-        setBackground(Color.GRAY);
-        setBounds(x, y, width, height);
-        setVisible(false);
 
         backToMainMenu.setPreferredSize(new Dimension(200, 50));
         resume.setPreferredSize(new Dimension(200, 50));
@@ -47,20 +39,18 @@ public class PauseMenuPanel extends JPanel{
             exitGame();
         });
 
-        add(title);
-        add(backToMainMenu);
-        add(resume);
-        add(exit);
+        container.add(title);
+        container.add(backToMainMenu);
+        container.add(resume);
+        container.add(exit);
     }
 
     public void resume(){
         setVisible(false);
-        gameContainer.getGame().resumeGameThread();
+        game.resumeGameThread();
     }
 
     public void backToMainMenu(){
-        Game game = gameContainer.getGame();
-
         // Savee game progress
         SaveData data = new SaveData(game.getCurrentLevel(), game.getLives(), game.getPlayerX(), game.getPlayerY());
         boolean saved = SaveManager.save(data);
@@ -69,16 +59,15 @@ public class PauseMenuPanel extends JPanel{
         }
 
         setVisible(false);
-        gameContainer.getGame().stopGameThread();
+        game.stopGameThread();
         switchPanel.accept("mainMenu");
     }
 
     public void exitGame() {
-        Game game = gameContainer.getGame();
         SaveData data = new SaveData(game.getCurrentLevel(), game.getLives(), game.getPlayerX(), game.getPlayerY());
         SaveManager.save(data);
 
-        gameContainer.getGame().stopGameThread();
+        game.stopGameThread();
         System.exit(0);
     }
 }

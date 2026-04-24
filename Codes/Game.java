@@ -34,38 +34,39 @@ public class Game extends JPanel implements Runnable {
 
     private final Set<Integer> heldKeys = java.util.Collections.synchronizedSet(new HashSet<>());
     
-    private GameLayeredPane gameContainer;
+    private int panelWidth, panelHeight;
+    private MainLayeredPane rootLayeredPane;
     private JButton pauseBtn = new JButton("Pause");
 
-    public Game(GameLayeredPane gameContainer) {
-        this.gameContainer = gameContainer;
+    public Game(int panelWidth, int panelHeight, MainLayeredPane rootLayeredPane) {
+        this.panelWidth = panelWidth;
+        this.panelHeight = panelHeight;
+        this.rootLayeredPane = rootLayeredPane;
 
         // Panel setup
-        setBounds(0, 0, TheLastStand.getFrameWidth(), TheLastStand.getFrameHeight());
         setLayout(null);
-        setFocusable(true);
 
         // Load assets
         grassImage = new ImageIcon("Entities/Background/grass.png").getImage();
         
         // Initialize game objects
-        obstacles.add(new Obstacle(200, 200, 100, 100));
-        obstacles.add(new Obstacle(400, 300, 100, 100));
-        obstacles.add(new Obstacle(600, 150, 100, 100));
-        player = new Player(300, 100, obstacles, this);
+        obstacles.add(new Obstacle(200, 200, 100, 100, panelWidth, panelHeight));
+        obstacles.add(new Obstacle(400, 300, 100, 100, panelWidth, panelHeight));
+        obstacles.add(new Obstacle(600, 150, 100, 100, panelWidth, panelHeight));
+        player = new Player(300, 100, panelWidth, panelHeight, obstacles, this);
 
         for (int i = 0; i < ENEMY_COUNT; i++) {
-            Enemy e = new Enemy(0, 0);
+            Enemy e = new Enemy(0, 0, panelWidth, panelHeight);
             e.respawn(); // random edge position
             enemies.add(e);
         }
 
         // Pause button
-        pauseBtn.setBounds(TheLastStand.getFrameWidth() - 125, 20, 100, 40);
+        pauseBtn.setBounds(panelWidth - 125, 20, 100, 40);
         pauseBtn.setFocusable(false);
         pauseBtn.addActionListener(e -> {
             pauseGameThread(); // stop loop
-            gameContainer.getPauseMenu().setVisible(true); // show pause UI
+            rootLayeredPane.getPauseMenu().setVisible(true); // show pause UI
         });
         add(pauseBtn);
 
@@ -186,8 +187,8 @@ public class Game extends JPanel implements Runnable {
     private void update() {
         player.update(heldKeys, obstacles);
 
-    int centerX = TheLastStand.getFrameWidth() / 2;
-    int centerY = TheLastStand.getFrameHeight() / 2;
+    int centerX = panelWidth / 2;
+    int centerY = panelHeight / 2;
 
     for (Enemy enemy : enemies) {
         // Move towards center
@@ -227,8 +228,8 @@ public class Game extends JPanel implements Runnable {
         if (player != null) player.draw(g); // draw player on top
     }
 
-    public GameLayeredPane getGameContainer() {
-        return gameContainer;
+    public MainLayeredPane getRootLayeredPane() {
+        return rootLayeredPane;
     }
 
     public int getCurrentLevel() {

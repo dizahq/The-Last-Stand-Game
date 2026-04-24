@@ -10,12 +10,15 @@ public class Enemy extends GameObject {
     private static final int SPEED = 1;
     private Image[] walkUp, walkDown, walkLeft, walkRight;
     private Image currentImage;
+    private int panelWidth, panelHeight;
     private int frameIndex = 0;
     private int animationTick = 0;
     private static final int ANIMATION_SPEED = 5;
 
-    public Enemy(int x, int y) {
+    public Enemy(int x, int y, int panelWidth, int panelHeight) {
         super(x, y, 60, 60); // same size as player
+        this.panelWidth = panelWidth;
+        this.panelHeight = panelHeight;
 
         walkUp = new Image[]{
             new ImageIcon("Entities/Enemy/up1.png").getImage(),
@@ -47,8 +50,8 @@ public class Enemy extends GameObject {
 
     // Respawn at a random edge of the screen
     public void respawn() {
-        int screenW = TheLastStand.getFrameWidth();
-        int screenH = TheLastStand.getFrameHeight();
+        int screenW = panelWidth;
+        int screenH = panelHeight;
 
         // Pick a random side: 0=top, 1=bottom, 2=left, 3=right
         int side = (int)(Math.random() * 4);

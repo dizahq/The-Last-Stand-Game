@@ -11,8 +11,8 @@ import javax.swing.JPanel;
 
 public class Player extends GameObject {
     private static final int SPEED = 2;
-    private int maxX = TheLastStand.getFrameWidth();
-    private int maxY = TheLastStand.getFrameHeight();
+    private int maxX;
+    private int maxY;
     private static final int ANIMATION_SPEED = 5;
     private Image currentImage;
     private int frameIndex = 0;
@@ -22,8 +22,10 @@ public class Player extends GameObject {
     private Image[] walkUp, walkDown, walkLeft, walkRight;
     private Image[] walkUpRight, walkUpLeft, walkDownRight, walkDownLeft;
 
-    Player(int x, int y, List<Obstacle> obstacles, JPanel gamePanel) {
+    Player(int x, int y, int panelWidth, int panelHeight, List<Obstacle> obstacles, JPanel gamePanel) {
         super(x, y, 60, 60);
+        this.maxX = panelWidth;
+        this.maxY = panelHeight;
 
         // Cardinal directions
         walkUp = new Image[]{
