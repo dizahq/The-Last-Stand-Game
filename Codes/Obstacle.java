@@ -28,8 +28,14 @@ public class Obstacle extends GameObject {
 
     @Override
     public Rectangle getBounds() {
-        // The rock collision is usually just the bottom base
-        return new Rectangle(x + 5, y + 25, width - 10, height - 30);
+        // Tight oval-ish box that hugs the visible rock, ignoring transparent padding
+        int margin = (int)(Math.min(width, height) * 0.25); // 25% inset on all sides
+        return new Rectangle(
+            x + margin,
+            y + margin,
+            width  - margin * 2,
+            height - margin * 2
+        );
     }
     
 

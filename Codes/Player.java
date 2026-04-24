@@ -95,13 +95,16 @@ public class Player extends GameObject {
     }
 
     @Override
-    public Rectangle getBounds() {
-        int hbWidth = width - 16;
-        int hbHeight = 12;
-        int offsetX = x + 8;
-        int offsetY = y + (height - hbHeight);
-        return new Rectangle(offsetX, offsetY, hbWidth, hbHeight);
-    }
+public Rectangle getBounds() {
+    // LARGE hitbox for combat (Enemy hitting Player)
+    // Covers most of the sprite body
+    return new Rectangle(x + 5, y + 5, width - 10, height - 10);
+}
+
+public Rectangle getFootBounds() {
+    // TINY hitbox for rocks/obstacles
+    return new Rectangle(x + 8, y + (height - 12), width - 16, 12);
+}
 
     @Override
     public void draw(Graphics g) {
@@ -117,27 +120,36 @@ public class Player extends GameObject {
         int oldX = this.x;
         int oldY = this.y;
 
+        // 1. Determine raw input direction
+        double dx = 0;
+        double dy = 0;
+
         boolean movingUp = heldKeys.contains(KeyEvent.VK_W) || heldKeys.contains(KeyEvent.VK_UP);
-        boolean movingDown  = heldKeys.contains(KeyEvent.VK_S) || heldKeys.contains(KeyEvent.VK_DOWN);
-        boolean movingLeft  = heldKeys.contains(KeyEvent.VK_A) || heldKeys.contains(KeyEvent.VK_LEFT);
+        boolean movingDown = heldKeys.contains(KeyEvent.VK_S) || heldKeys.contains(KeyEvent.VK_DOWN);
+        boolean movingLeft = heldKeys.contains(KeyEvent.VK_A) || heldKeys.contains(KeyEvent.VK_LEFT);
         boolean movingRight = heldKeys.contains(KeyEvent.VK_D) || heldKeys.contains(KeyEvent.VK_RIGHT);
 
-        if (movingUp) this.y = Math.max(0, this.y - SPEED);
-        if (movingDown)  this.y = Math.min(maxY - height, this.y + SPEED);
-        if (movingLeft)  this.x = Math.max(0, this.x - SPEED);
-        if (movingRight) this.x = Math.min(maxX - width, this.x + SPEED);
+        if (movingUp) dy -= 1;
+        if (movingDown) dy += 1;
+        if (movingLeft) dx -= 1;
+        if (movingRight) dx += 1;
 
-        // 8-directional animation
-        if (movingUp && movingRight) updateAnimation(walkUpRight);   // ↗
-        else if (movingUp && movingLeft) updateAnimation(walkUpLeft);    // ↖
-        else if (movingDown && movingRight) updateAnimation(walkDownRight); // ↘
-        else if (movingDown && movingLeft) updateAnimation(walkDownLeft);  // ↙
-        else if (movingUp) updateAnimation(walkUp);        // ↑
-        else if (movingDown) updateAnimation(walkDown);      // ↓
-        else if (movingLeft) updateAnimation(walkLeft);      // ←
-        else if (movingRight) updateAnimation(walkRight);     // →
+        // 2. Normalize the vector if moving
+        if (dx != 0 || dy != 0) {
+            // Calculate length: sqrt(x^2 + y^2)
+            double length = Math.sqrt(dx * dx + dy * dy);
+        
+            // Divide by length to make the total magnitude 1.0, 
+            // then multiply by SPEED.
+            dx = (dx / length) * SPEED;
+            dy = (dy / length) * SPEED;
+        }   
 
-        // Collision check
+        // 3. Apply movement with bounds checking
+        this.x = (int) Math.max(0, Math.min(maxX - width, this.x + dx));
+        this.y = (int) Math.max(0, Math.min(maxY - height, this.y + dy));
+
+        // 4. Collision check (Multi-axis collision logic)
         for (Obstacle obs : obstacles) {
             if (getBounds().intersects(obs.getBounds())) {
                 this.x = oldX;
@@ -145,8 +157,18 @@ public class Player extends GameObject {
                 break;
             }
         }
-    }
 
+        // 5. 8-directional animation logic (Keep your original logic here)
+        if (movingUp && movingRight) updateAnimation(walkUpRight);
+        else if (movingUp && movingLeft) updateAnimation(walkUpLeft);
+        else if (movingDown && movingRight) updateAnimation(walkDownRight);
+        else if (movingDown && movingLeft) updateAnimation(walkDownLeft);
+        else if (movingUp) updateAnimation(walkUp);
+        else if (movingDown) updateAnimation(walkDown);
+        else if (movingLeft) updateAnimation(walkLeft);
+        else if (movingRight) updateAnimation(walkRight);
+    }
+    
     public int getX() { return x; }
     public int getY() { return y; }
 

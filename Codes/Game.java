@@ -187,23 +187,22 @@ public class Game extends JPanel implements Runnable {
     private void update() {
         player.update(heldKeys, obstacles);
 
-        int centerX = panelWidth / 2;
-        int centerY = panelHeight / 2;
+        // In update() — replace the old enemy loop with this:
+        int playerCX = player.getX() + 20;
+        int playerCY = player.getY() + 54;
 
         for (Enemy enemy : enemies) {
-            // Move towards center
-            enemy.moveTowards(centerX, centerY);
+            boolean dealDamage = enemy.moveTowards(playerCX, playerCY, obstacles);
 
-            // Check collision with player
-            if (enemy.getBounds().intersects(player.getBounds())) {
-                lives--;                  // reduce life by 1
-                enemy.respawn();          // respawn enemy after hit
+            // moveTowards() returns true exactly once per swing (on the damage frame)
+            if (dealDamage && enemy.getBounds().intersects(player.getBounds())) {
+                lives--;
                 System.out.println("[Game] Player hit! Lives: " + lives);
 
                 if (lives <= 0) {
                 stopGameThread();
-                System.out.println("[Game] Game Over.");
-                // TODO: show game over screen
+                    System.out.println("[Game] Game Over.");
+                    // TODO: show game over screen
                 }
             }
         }
