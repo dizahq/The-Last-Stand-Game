@@ -4,33 +4,32 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
-import java.util.List;
+import java.util.*;
 import javax.swing.ImageIcon;
 
 public class Enemy extends GameObject {
-    private static final int   SPEED           = 1;
-    private static final int   ATTACK_RANGE    = 80;
+    private static final int SPEED             = 1;
+    private static final int ATTACK_RANGE      = 80;
+    private static final int CELL              = 16;
+    private static final int PATH_REFRESH      = 60; // replan every 60 frames
+    private static final int MOVE_THRESHOLD    = 50; // replan if player moves 50px
+    private static final int CONTACT_COOLDOWN_MAX = 90;
 
-    // How many pixels to stand off from an obstacle edge when picking a waypoint
-    private static final int   STANDOFF        = 20;
+    private int contactCooldown = 0;
+    private int lastTargetX     = -1;
+    private int lastTargetY     = -1;
+    private int stuckTimer      = 0;
+    private int lastX, lastY;
 
-    // State
     private enum State  { WALK, ATTACK }
     private enum Facing { UP, DOWN, LEFT, RIGHT }
     private State  state  = State.WALK;
     private Facing facing = Facing.DOWN;
 
-    // Waypoint: when non-null the enemy walks to this point before re-targeting the player
-    private int[] waypoint = null;
+    private final Deque<int[]> path = new ArrayDeque<>();
+    private int pathCooldown = 0;
 
-    // Cooldown prevents hammering a new waypoint every frame while still blocked
-    private int waypointCooldown = 0;
-    private static final int WAYPOINT_COOLDOWN_MAX = 30; // frames
-
-    // Walk sprites
     private Image[] walkUp, walkDown, walkLeft, walkRight;
-
-    // Attack sprites
     private Image[] attackUp, attackDown, attackLeft, attackRight;
 
     private Image currentImage;
@@ -57,18 +56,19 @@ public class Enemy extends GameObject {
         attackRight = loadStrip("Entities/Enemy/attack_right", 4);
 
         currentImage = walkDown[0];
+        lastX = x; lastY = y;
     }
 
-    // ── Utility: load numbered sprite strip ───────────────────────────────────
     private Image[] loadStrip(String prefix, int count) {
         Image[] frames = new Image[count];
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++)
             frames[i] = new ImageIcon(prefix + (i + 1) + ".png").getImage();
-        }
         return frames;
     }
 
-    // ── Respawn ───────────────────────────────────────────────────────────────
+    public boolean canContactDamage()  { return contactCooldown <= 0; }
+    public void resetContactCooldown() { contactCooldown = CONTACT_COOLDOWN_MAX; }
+
     public void respawn() {
         int side = (int)(Math.random() * 4);
         switch (side) {
@@ -77,176 +77,223 @@ public class Enemy extends GameObject {
             case 2 -> { x = 0;                                   y = (int)(Math.random() * panelHeight); }
             case 3 -> { x = panelWidth - width;                  y = (int)(Math.random() * panelHeight); }
         }
-        state         = State.WALK;
-        waypoint      = null;
-        attackLanded  = false;
-        frameIndex    = 0;
-        animationTick = 0;
+        state           = State.WALK;
+        attackLanded    = false;
+        frameIndex      = 0;
+        animationTick   = 0;
+        contactCooldown = 0;
+        lastTargetX     = -1;
+        lastTargetY     = -1;
+        stuckTimer      = 0;
+        lastX = x; lastY = y;
+        path.clear();
+        pathCooldown = 0;
     }
 
     // ── Main update ───────────────────────────────────────────────────────────
     public boolean moveTowards(int targetX, int targetY, List<Obstacle> obstacles) {
+        if (contactCooldown > 0) contactCooldown--;
+
         int centerX = x + width  / 2;
         int centerY = y + height / 2;
-
-        double dx   = targetX - centerX;
-        double dy   = targetY - centerY;
-        double dist = Math.sqrt(dx * dx + dy * dy);
+        double dist = Math.hypot(targetX - centerX, targetY - centerY);
 
         // ── State switch ──────────────────────────────────────────────────────
         if (dist <= ATTACK_RANGE) {
             state = State.ATTACK;
         } else if (state == State.ATTACK && isAttackFinished()) {
-            state        = State.WALK;
-            attackLanded = false;
-            frameIndex   = 0;
+            state         = State.WALK;
+            attackLanded  = false;
+            frameIndex    = 0;
             animationTick = 0;
         }
 
         if (state == State.ATTACK) {
-            boolean damageFrame = tickAttackAnimation(getAttackStrip());
-            return damageFrame && !attackLanded;
+            boolean dmg = tickAttackAnimation(getAttackStrip());
+            return dmg && !attackLanded;
         }
 
-        // ── Determine move target (waypoint or player) ────────────────────────
-        int goalX, goalY;
-        if (waypoint != null) {
-            // Check if we've arrived at the waypoint (within SPEED radius)
-            double wpDx = waypoint[0] - centerX;
-            double wpDy = waypoint[1] - centerY;
-            if (Math.sqrt(wpDx * wpDx + wpDy * wpDy) < SPEED + 2) {
-                waypoint = null; // reached it, go back to chasing player
+        // ── Stuck detection: force replan if not moving ───────────────────────
+        if (Math.abs(x - lastX) < 1 && Math.abs(y - lastY) < 1) {
+            stuckTimer++;
+            if (stuckTimer > 30) {
+                path.clear();
+                pathCooldown = 0;
+                stuckTimer   = 0;
             }
-        }
-
-        if (waypoint != null) {
-            goalX = waypoint[0];
-            goalY = waypoint[1];
         } else {
-            goalX = targetX;
-            goalY = targetY;
+            stuckTimer = 0;
         }
+        lastX = x; lastY = y;
 
-        // ── Build move vector toward goal ──────────────────────────────────────
-        double gDx  = goalX - centerX;
-        double gDy  = goalY - centerY;
-        double gLen = Math.sqrt(gDx * gDx + gDy * gDy);
-        if (gLen == 0) return false;
+        // ── Replan only when needed ───────────────────────────────────────────
+        boolean playerMoved = Math.hypot(targetX - lastTargetX,
+                                         targetY - lastTargetY) > MOVE_THRESHOLD;
 
-        double moveX = (gDx / gLen) * SPEED;
-        double moveY = (gDy / gLen) * SPEED;
+        if (pathCooldown <= 0 || path.isEmpty() || playerMoved) {
+            List<int[]> newPath = astar(centerX, centerY, targetX, targetY, obstacles);
+            path.clear();
+            if (newPath != null) path.addAll(newPath);
+            pathCooldown = PATH_REFRESH;
+            lastTargetX  = targetX;
+            lastTargetY  = targetY;
+        }
+        pathCooldown--;
 
-        // ── Try to move; if blocked, pick a waypoint around the obstacle ───────
-        int newX = Math.max(0, Math.min(panelWidth  - width,  (int) Math.round(x + moveX)));
-        int newY = Math.max(0, Math.min(panelHeight - height, (int) Math.round(y + moveY)));
+        // ── Follow path ───────────────────────────────────────────────────────
+        if (!path.isEmpty()) {
+            int[] next    = path.peek();
+            double dx     = next[0] - centerX;
+            double dy     = next[1] - centerY;
+            double len    = Math.hypot(dx, dy);
 
-        Obstacle blocking = getBlockingObstacle(newX, newY, obstacles);
-
-        if (blocking == null) {
-            // Clear path — move normally
-            x = newX;
-            y = newY;
-            waypointCooldown = 0;
-        } else {
-            // Blocked — try axis-separated slides first
-            boolean movedX = false, movedY = false;
-
-            int slideXx = Math.max(0, Math.min(panelWidth  - width,  (int) Math.round(x + moveX)));
-            if (getBlockingObstacle(slideXx, y, obstacles) == null) {
-                x = slideXx;
-                movedX = true;
+            // Pop waypoint when within arrival radius
+            if (len <= CELL) {
+                path.poll();
+                updateAnimation(getWalkStrip(), WALK_ANIM_SPEED);
+                return false;
             }
 
-            int slideYy = Math.max(0, Math.min(panelHeight - height, (int) Math.round(y + moveY)));
-            if (getBlockingObstacle(x, slideYy, obstacles) == null) {
-                y = slideYy;
-                movedY = true;
+            double moveX = (dx / len) * SPEED;
+            double moveY = (dy / len) * SPEED;
+
+            int newX = Math.max(0, Math.min(panelWidth  - width,  (int) Math.round(x + moveX)));
+            int newY = Math.max(0, Math.min(panelHeight - height, (int) Math.round(y + moveY)));
+
+            // Try full move
+            if (getBlockingObstacle(newX, newY, obstacles) == null) {
+                x = newX;
+                y = newY;
+            } else {
+                // Try sliding on X only
+                if (getBlockingObstacle(newX, y, obstacles) == null) {
+                    x = newX;
+                // Try sliding on Y only
+                } else if (getBlockingObstacle(x, newY, obstacles) == null) {
+                    y = newY;
+                } else {
+                    // Fully blocked — force replan
+                    path.clear();
+                    pathCooldown = 0;
+                }
             }
 
-            // Still fully blocked on the dominant axis — pick a waypoint to go around
-            if (!movedX && !movedY && waypointCooldown <= 0) {
-                waypoint = pickWaypoint(blocking, targetX, targetY, centerX, centerY);
-                waypointCooldown = WAYPOINT_COOLDOWN_MAX;
-            }
-
-            if (waypointCooldown > 0) waypointCooldown--;
+            double actualDx = (x + width  / 2.0) - centerX;
+            double actualDy = (y + height / 2.0) - centerY;
+            if (actualDx != 0 || actualDy != 0) updateFacing(actualDx, actualDy);
         }
 
-        // ── Facing & animation ─────────────────────────────────────────────────
-        double actualMoveX = (x + width  / 2.0) - centerX;
-        double actualMoveY = (y + height / 2.0) - centerY;
-        if (actualMoveX != 0 || actualMoveY != 0) {
-            updateFacing(actualMoveX, actualMoveY);
-        }
         updateAnimation(getWalkStrip(), WALK_ANIM_SPEED);
         return false;
     }
 
-    // ── Waypoint picker ───────────────────────────────────────────────────────
-    /**
-     * Picks one of the 4 corners of the blocking obstacle's bounds (expanded by
-     * STANDOFF), choosing whichever corner is closest to the player while still
-     * being on the same side as the enemy.
-     */
-    private int[] pickWaypoint(Obstacle obs, int targetX, int targetY,
-                                int enemyCX, int enemyCY) {
-        Rectangle b = obs.getBounds();
+    // ── A* pathfinder ─────────────────────────────────────────────────────────
+    private List<int[]> astar(int startX, int startY,
+                               int goalX,  int goalY,
+                               List<Obstacle> obstacles) {
 
-        // Expand bounds by STANDOFF so the waypoint clears the obstacle edge
-        int left   = b.x - STANDOFF;
-        int right  = b.x + b.width  + STANDOFF;
-        int top    = b.y - STANDOFF;
-        int bottom = b.y + b.height + STANDOFF;
+        int cols = panelWidth  / CELL + 1;
+        int rows = panelHeight / CELL + 1;
 
-        // Four candidate corner waypoints
-        int[][] corners = {
-            { left,  top    },
-            { right, top    },
-            { left,  bottom },
-            { right, bottom }
+        int sc = Math.max(0, Math.min(cols - 1, startX / CELL));
+        int sr = Math.max(0, Math.min(rows - 1, startY / CELL));
+        int gc = Math.max(0, Math.min(cols - 1, goalX  / CELL));
+        int gr = Math.max(0, Math.min(rows - 1, goalY  / CELL));
+
+        // Inflate obstacles by half enemy size to prevent corner clipping
+        int inflate = (Math.max(width, height) / 2) / CELL + 1;
+
+        boolean[][] blocked = new boolean[rows][cols];
+        for (Obstacle obs : obstacles) {
+            Rectangle b  = obs.getBounds();
+            int minC = Math.max(0, b.x / CELL - inflate);
+            int maxC = Math.min(cols - 1, (b.x + b.width)  / CELL + inflate);
+            int minR = Math.max(0, b.y / CELL - inflate);
+            int maxR = Math.min(rows - 1, (b.y + b.height) / CELL + inflate);
+            for (int r = minR; r <= maxR; r++)
+                for (int c = minC; c <= maxC; c++)
+                    blocked[r][c] = true;
+        }
+
+        // Always unblock start and goal
+        blocked[sr][sc] = false;
+        blocked[gr][gc] = false;
+
+        // A* search
+        int[][] gCost  = new int[rows][cols];
+        int[][] parent = new int[rows][cols];
+        for (int[] row : gCost)  Arrays.fill(row, Integer.MAX_VALUE);
+        for (int[] row : parent) Arrays.fill(row, -1);
+
+        PriorityQueue<int[]> open = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
+        gCost[sr][sc] = 0;
+        open.offer(new int[]{ heuristic(sc, sr, gc, gr), sc, sr });
+
+        int[][] dirs = {
+            {-1,-1},{0,-1},{1,-1},
+            {-1, 0},       {1, 0},
+            {-1, 1},{0, 1},{1, 1}
         };
 
-        // Score each corner: prefer ones that are (a) closer to the player and
-        // (b) not behind us (dot product with desired direction > 0)
-        double desiredDx = targetX - enemyCX;
-        double desiredDy = targetY - enemyCY;
-        double desiredLen = Math.sqrt(desiredDx * desiredDx + desiredDy * desiredDy);
-        if (desiredLen > 0) { desiredDx /= desiredLen; desiredDy /= desiredLen; }
+        boolean found = false;
+        while (!open.isEmpty()) {
+            int[] cur = open.poll();
+            int cc = cur[1], cr = cur[2];
+            if (cc == gc && cr == gr) { found = true; break; }
 
-        int[]  best      = corners[0];
-        double bestScore = Double.MAX_VALUE;
+            for (int[] d : dirs) {
+                int nc = cc + d[0], nr = cr + d[1];
+                if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) continue;
+                if (blocked[nr][nc]) continue;
 
-        for (int[] corner : corners) {
-            double toDx   = corner[0] - enemyCX;
-            double toDy   = corner[1] - enemyCY;
-            double toLen  = Math.sqrt(toDx * toDx + toDy * toDy);
-            double dot    = (toLen > 0) ? (toDx / toLen * desiredDx + toDy / toLen * desiredDy) : 0;
+                // Prevent diagonal cutting through blocked corners
+                if (d[0] != 0 && d[1] != 0) {
+                    if (blocked[cr][cc + d[0]] || blocked[cr + d[1]][cc]) continue;
+                }
 
-            // Distance from corner to final target (player)
-            double fromCornerToTarget = Math.sqrt(
-                Math.pow(corner[0] - targetX, 2) + Math.pow(corner[1] - targetY, 2)
-            );
+                int step = (d[0] != 0 && d[1] != 0) ? 14 : 10;
+                int ng   = gCost[cr][cc] + step;
 
-            // Only consider corners roughly in front of us (dot > -0.3)
-            if (dot > -0.3 && fromCornerToTarget < bestScore) {
-                bestScore = fromCornerToTarget;
-                best      = corner;
+                if (ng < gCost[nr][nc]) {
+                    gCost[nr][nc]  = ng;
+                    parent[nr][nc] = cr * cols + cc;
+                    open.offer(new int[]{ ng + heuristic(nc, nr, gc, gr), nc, nr });
+                }
             }
         }
 
-        // Clamp waypoint to panel bounds
-        best[0] = Math.max(width  / 2, Math.min(panelWidth  - width  / 2, best[0]));
-        best[1] = Math.max(height / 2, Math.min(panelHeight - height / 2, best[1]));
-        return best;
+        if (!found) return null;
+
+        // Reconstruct path as world-pixel waypoints
+        List<int[]> waypoints = new ArrayList<>();
+        int cc = gc, cr = gr;
+        while (!(cc == sc && cr == sr)) {
+            waypoints.add(0, new int[]{ cc * CELL + CELL / 2, cr * CELL + CELL / 2 });
+            int p = parent[cr][cc];
+            if (p < 0) break;
+            int prevR = p / cols;
+            int prevC = p % cols;
+            cr = prevR;
+            cc = prevC;
+        }
+
+        if (waypoints.isEmpty())
+            waypoints.add(new int[]{ goalX, goalY });
+
+        return waypoints;
     }
 
-    // ── Collision helper 
-    /** Returns the first obstacle blocking position (nx, ny), or null if clear. */
+    private int heuristic(int c1, int r1, int c2, int r2) {
+        int dx = Math.abs(c1 - c2);
+        int dy = Math.abs(r1 - r2);
+        return 10 * Math.max(dx, dy) + (dx + dy);
+    }
+
+    // ── Collision helper ──────────────────────────────────────────────────────
     private Obstacle getBlockingObstacle(int nx, int ny, List<Obstacle> obstacles) {
-        Rectangle test = new Rectangle(nx + 8, ny + (height - 12), width - 16, 12);
-        for (Obstacle obs : obstacles) {
+        Rectangle test = new Rectangle(nx, ny, width, height);
+        for (Obstacle obs : obstacles)
             if (test.intersects(obs.getBounds())) return obs;
-        }
         return null;
     }
 
@@ -257,10 +304,7 @@ public class Enemy extends GameObject {
         if (animationTick >= ATTACK_ANIM_SPEED) {
             animationTick = 0;
             if (frameIndex < frames.length - 1) frameIndex++;
-            if (frameIndex == 2) {
-                isDamageFrame = true;
-                attackLanded  = true;
-            }
+            if (frameIndex == 2) { isDamageFrame = true; attackLanded = true; }
         }
         currentImage = frames[frameIndex];
         return isDamageFrame;
@@ -270,7 +314,7 @@ public class Enemy extends GameObject {
         return frameIndex >= getAttackStrip().length - 1;
     }
 
-    // Direction helpers 
+    // ── Direction helpers ─────────────────────────────────────────────────────
     private void updateFacing(double moveX, double moveY) {
         if (Math.abs(moveX) > Math.abs(moveY))
             facing = (moveX > 0) ? Facing.RIGHT : Facing.LEFT;
@@ -300,14 +344,14 @@ public class Enemy extends GameObject {
         animationTick++;
         if (animationTick >= speed) {
             animationTick = 0;
-            frameIndex    = (frameIndex + 1) % frames.length;
+            frameIndex = (frameIndex + 1) % frames.length;
         }
         currentImage = frames[frameIndex];
     }
 
     @Override
     public Rectangle getBounds() {
-        return new Rectangle(x + 8, y + (height - 12), width - 16, 12);
+        return new Rectangle(x, y, width, height);
     }
 
     @Override
