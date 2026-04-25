@@ -95,17 +95,10 @@ public class Player extends GameObject {
     }
 
     @Override
-public Rectangle getBounds() {
-    // LARGE hitbox for combat (Enemy hitting Player)
-    // Covers most of the sprite body
-    return new Rectangle(x + 5, y + 5, width - 10, height - 10);
-}
-
-public Rectangle getFootBounds() {
-    // TINY hitbox for rocks/obstacles
-    return new Rectangle(x + 8, y + (height - 12), width - 16, 12);
-}
-
+    public Rectangle getBounds() {
+        return new Rectangle(x + 8, y + (height - 12), width - 16, 12);
+    }
+    
     @Override
     public void draw(Graphics g) {
         if (currentImage != null && currentImage.getWidth(null) != -1) {

@@ -16,7 +16,7 @@ public class Obstacle extends GameObject {
         this.panelWidth = panelWidth;
         this.panelHeight = panelHeight;
 
-        image = new ImageIcon("Entities/Object/rock1.png").getImage();
+        //image = new ImageIcon("Entities/Object/rock1.png").getImage();
         
         // Optional: Safety clamp to ensure wall doesn't exceed screen bounds 
         // using the dynamic frame sizes from your main class.
@@ -26,18 +26,12 @@ public class Obstacle extends GameObject {
         if (this.y + this.height > maxY) this.height = maxY - this.y;
     }
 
+    //Mainly used for collision detection, so we define a smaller hitbox that better matches the visual representation of the wall.
     @Override
     public Rectangle getBounds() {
         // Tight oval-ish box that hugs the visible rock, ignoring transparent padding
-        int margin = (int)(Math.min(width, height) * 0.25); // 25% inset on all sides
-        return new Rectangle(
-            x + margin,
-            y + margin,
-            width  - margin * 2,
-            height - margin * 2
-        );
+        return new Rectangle(x, y, width, height);
     }
-    
 
     // Renders the wall as a Red rectangle on the screen.
     @Override
@@ -54,5 +48,9 @@ public class Obstacle extends GameObject {
             g.setColor(Color.BLACK);
             g.drawRect(x, y, width, height);
         }
+
+        Rectangle b = getBounds();
+g.setColor(new java.awt.Color(255, 0, 0, 140));
+g.drawRect(b.x, b.y, b.width, b.height);
     }
 }
