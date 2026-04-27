@@ -9,10 +9,10 @@ import javax.swing.ImageIcon;
 
 public class Enemy extends GameObject {
     private static final int SPEED             = 1;
-    private static final int ATTACK_RANGE      = 80;
+    private static final int ATTACK_RANGE      = 50;
     private static final int CELL              = 16;
-    private static final int PATH_REFRESH      = 60; // replan every 60 frames
-    private static final int MOVE_THRESHOLD    = 50; // replan if player moves 50px
+    private static final int PATH_REFRESH      = 60;
+    private static final int MOVE_THRESHOLD    = 50;
     private static final int CONTACT_COOLDOWN_MAX = 90;
 
     private int contactCooldown = 0;
@@ -74,9 +74,10 @@ public class Enemy extends GameObject {
         switch (side) {
             case 0 -> { x = (int)(Math.random() * panelWidth);  y = 0; }
             case 1 -> { x = (int)(Math.random() * panelWidth);  y = panelHeight - height; }
-            case 2 -> { x = 0;                                   y = (int)(Math.random() * panelHeight); }
-            case 3 -> { x = panelWidth - width;                  y = (int)(Math.random() * panelHeight); }
+            case 2 -> { x = 0; y = (int)(Math.random() * panelHeight); }
+            case 3 -> { x = panelWidth - width; y = (int)(Math.random() * panelHeight); }
         }
+
         state           = State.WALK;
         attackLanded    = false;
         frameIndex      = 0;
@@ -90,7 +91,6 @@ public class Enemy extends GameObject {
         pathCooldown = 0;
     }
 
-    // ── Main update ───────────────────────────────────────────────────────────
     public boolean moveTowards(int targetX, int targetY, List<Obstacle> obstacles) {
         if (contactCooldown > 0) contactCooldown--;
 
@@ -98,7 +98,7 @@ public class Enemy extends GameObject {
         int centerY = y + height / 2;
         double dist = Math.hypot(targetX - centerX, targetY - centerY);
 
-        // ── State switch ──────────────────────────────────────────────────────
+        // State switch
         if (dist <= ATTACK_RANGE) {
             state = State.ATTACK;
         } else if (state == State.ATTACK && isAttackFinished()) {
@@ -113,22 +113,33 @@ public class Enemy extends GameObject {
             return dmg && !attackLanded;
         }
 
-        // ── Stuck detection: force replan if not moving ───────────────────────
+        // ── FIX 1: Stuck detection now resets stuckTimer when not stuck,
+        //    and forces a replan with a small random nudge so the enemy
+        //    doesn't freeze against the same obstacle forever.
         if (Math.abs(x - lastX) < 1 && Math.abs(y - lastY) < 1) {
             stuckTimer++;
             if (stuckTimer > 30) {
                 path.clear();
                 pathCooldown = 0;
                 stuckTimer   = 0;
+
+                // Nudge the enemy slightly away from its current position
+                // so A* doesn't immediately plan a path into the same wall.
+                int nudgeX = (int)((Math.random() * 2 - 1) * CELL * 2);
+                int nudgeY = (int)((Math.random() * 2 - 1) * CELL * 2);
+                x = Math.max(0, Math.min(panelWidth  - width,  x + nudgeX));
+                y = Math.max(0, Math.min(panelHeight - height, y + nudgeY));
             }
         } else {
             stuckTimer = 0;
         }
         lastX = x; lastY = y;
 
-        // ── Replan only when needed ───────────────────────────────────────────
-        boolean playerMoved = Math.hypot(targetX - lastTargetX,
-                                         targetY - lastTargetY) > MOVE_THRESHOLD;
+        // Recalculate center after possible nudge
+        centerX = x + width  / 2;
+        centerY = y + height / 2;
+
+        boolean playerMoved = Math.hypot(targetX - lastTargetX, targetY - lastTargetY) > MOVE_THRESHOLD;
 
         if (pathCooldown <= 0 || path.isEmpty() || playerMoved) {
             List<int[]> newPath = astar(centerX, centerY, targetX, targetY, obstacles);
@@ -140,14 +151,13 @@ public class Enemy extends GameObject {
         }
         pathCooldown--;
 
-        // ── Follow path ───────────────────────────────────────────────────────
+        // Follow path
         if (!path.isEmpty()) {
-            int[] next    = path.peek();
-            double dx     = next[0] - centerX;
-            double dy     = next[1] - centerY;
-            double len    = Math.hypot(dx, dy);
+            int[] next = path.peek();
+            double dx  = next[0] - centerX;
+            double dy  = next[1] - centerY;
+            double len = Math.hypot(dx, dy);
 
-            // Pop waypoint when within arrival radius
             if (len <= CELL) {
                 path.poll();
                 updateAnimation(getWalkStrip(), WALK_ANIM_SPEED);
@@ -160,22 +170,23 @@ public class Enemy extends GameObject {
             int newX = Math.max(0, Math.min(panelWidth  - width,  (int) Math.round(x + moveX)));
             int newY = Math.max(0, Math.min(panelHeight - height, (int) Math.round(y + moveY)));
 
-            // Try full move
+            // ── FIX 2: When fully blocked, increment stuckTimer immediately
+            //    instead of forcing an instant replan. This prevents the
+            //    path.clear() / pathCooldown = 0 thrash loop that caused
+            //    the enemy to freeze (it was replanning and re-blocking
+            //    every single frame). The stuckTimer block above will
+            //    handle the replan cleanly after 30 frames.
             if (getBlockingObstacle(newX, newY, obstacles) == null) {
                 x = newX;
                 y = newY;
+            } else if (getBlockingObstacle(newX, y, obstacles) == null) {
+                x = newX;
+            } else if (getBlockingObstacle(x, newY, obstacles) == null) {
+                y = newY;
             } else {
-                // Try sliding on X only
-                if (getBlockingObstacle(newX, y, obstacles) == null) {
-                    x = newX;
-                // Try sliding on Y only
-                } else if (getBlockingObstacle(x, newY, obstacles) == null) {
-                    y = newY;
-                } else {
-                    // Fully blocked — force replan
-                    path.clear();
-                    pathCooldown = 0;
-                }
+                // Fully blocked: let stuckTimer handle the replan
+                // (removed the instant path.clear() that caused freezing)
+                stuckTimer += 5; // accelerate stuck detection when wall-blocked
             }
 
             double actualDx = (x + width  / 2.0) - centerX;
@@ -187,11 +198,9 @@ public class Enemy extends GameObject {
         return false;
     }
 
-    // ── A* pathfinder ─────────────────────────────────────────────────────────
-    private List<int[]> astar(int startX, int startY,
-                               int goalX,  int goalY,
+    // A* pathfinder 
+    private List<int[]> astar(int startX, int startY, int goalX, int goalY,
                                List<Obstacle> obstacles) {
-
         int cols = panelWidth  / CELL + 1;
         int rows = panelHeight / CELL + 1;
 
@@ -200,7 +209,6 @@ public class Enemy extends GameObject {
         int gc = Math.max(0, Math.min(cols - 1, goalX  / CELL));
         int gr = Math.max(0, Math.min(rows - 1, goalY  / CELL));
 
-        // Inflate obstacles by half enemy size to prevent corner clipping
         int inflate = (Math.max(width, height) / 2) / CELL + 1;
 
         boolean[][] blocked = new boolean[rows][cols];
@@ -215,11 +223,16 @@ public class Enemy extends GameObject {
                     blocked[r][c] = true;
         }
 
-        // Always unblock start and goal
-        blocked[sr][sc] = false;
-        blocked[gr][gc] = false;
+        int clearRadius = inflate; // same radius used to inflate
+        for (int dr = -clearRadius; dr <= clearRadius; dr++) {
+            for (int dc = -clearRadius; dc <= clearRadius; dc++) {
+                int r = sr + dr, c = sc + dc;
+                if (r >= 0 && r < rows && c >= 0 && c < cols) blocked[r][c] = false;
+                r = gr + dr; c = gc + dc;
+                if (r >= 0 && r < rows && c >= 0 && c < cols) blocked[r][c] = false;
+            }
+        }
 
-        // A* search
         int[][] gCost  = new int[rows][cols];
         int[][] parent = new int[rows][cols];
         for (int[] row : gCost)  Arrays.fill(row, Integer.MAX_VALUE);
@@ -246,7 +259,6 @@ public class Enemy extends GameObject {
                 if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) continue;
                 if (blocked[nr][nc]) continue;
 
-                // Prevent diagonal cutting through blocked corners
                 if (d[0] != 0 && d[1] != 0) {
                     if (blocked[cr][cc + d[0]] || blocked[cr + d[1]][cc]) continue;
                 }
@@ -264,7 +276,6 @@ public class Enemy extends GameObject {
 
         if (!found) return null;
 
-        // Reconstruct path as world-pixel waypoints
         List<int[]> waypoints = new ArrayList<>();
         int cc = gc, cr = gr;
         while (!(cc == sc && cr == sr)) {
@@ -289,7 +300,6 @@ public class Enemy extends GameObject {
         return 10 * Math.max(dx, dy) + (dx + dy);
     }
 
-    // ── Collision helper ──────────────────────────────────────────────────────
     private Obstacle getBlockingObstacle(int nx, int ny, List<Obstacle> obstacles) {
         Rectangle test = new Rectangle(nx, ny, width, height);
         for (Obstacle obs : obstacles)
@@ -314,7 +324,6 @@ public class Enemy extends GameObject {
         return frameIndex >= getAttackStrip().length - 1;
     }
 
-    // ── Direction helpers ─────────────────────────────────────────────────────
     private void updateFacing(double moveX, double moveY) {
         if (Math.abs(moveX) > Math.abs(moveY))
             facing = (moveX > 0) ? Facing.RIGHT : Facing.LEFT;

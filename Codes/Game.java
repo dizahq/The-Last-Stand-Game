@@ -244,7 +244,6 @@ public class Game extends JPanel implements Runnable {
     public void setLives(int lives) {
         this.lives = lives;
     }
-
     public int getPlayerX() {
         return player.getX();
     }
