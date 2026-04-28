@@ -26,6 +26,7 @@ public class Game extends JPanel implements Runnable {
     private Player player;
     private List<Obstacle> obstacles = new ArrayList<>();
     private List<Enemy> enemies = new ArrayList<>();
+    private List<Bullet> bullets = new ArrayList<>();
     private static final int ENEMY_COUNT = 3; // how many enemies you want
     private Image grassImage;
 
@@ -34,13 +35,10 @@ public class Game extends JPanel implements Runnable {
 
     private final Set<Integer> heldKeys = java.util.Collections.synchronizedSet(new HashSet<>());
     
-    private int panelWidth, panelHeight;
     private MainLayeredPane rootLayeredPane;
     private JButton pauseBtn = new JButton("Pause");
 
     public Game(int panelWidth, int panelHeight, MainLayeredPane rootLayeredPane) {
-        this.panelWidth = panelWidth;
-        this.panelHeight = panelHeight;
         this.rootLayeredPane = rootLayeredPane;
 
         // Panel setup
@@ -206,6 +204,10 @@ public class Game extends JPanel implements Runnable {
                 }
             }
         }
+
+        for (Bullet bullet : bullets){
+            bullet.update();
+        }
     }
 
     @Override
@@ -222,9 +224,14 @@ public class Game extends JPanel implements Runnable {
 
         // Draw game ojects
         for (Obstacle obs : obstacles) obs.draw(g);
+        for (Bullet bullet : bullets) bullet.draw(g);
         if (player != null) player.draw(g); 
         for (Enemy enemy : enemies) enemy.draw(g);
         if (player != null) player.draw(g); // draw player on top
+    }
+
+    public void addBullet(Bullet bullet){
+        bullets.add(bullet);
     }
 
     public MainLayeredPane getRootLayeredPane() {

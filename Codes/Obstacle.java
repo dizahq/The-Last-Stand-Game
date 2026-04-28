@@ -3,18 +3,14 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
-import javax.swing.ImageIcon;
 
 //Represents a static obstacle that the player must avoid.
 public class Obstacle extends GameObject {
-    private int panelWidth, panelHeight;
     private Image image; // Optional: If you want to use an image instead of a solid color  
     
     // Constructor passing coordinates and dimensions to the GameObject parent.
     Obstacle(int x, int y, int width, int height, int panelWidth, int panelHeight) {
         super(x, y, width, height);
-        this.panelWidth = panelWidth;
-        this.panelHeight = panelHeight;
 
         //image = new ImageIcon("Entities/Object/rock1.png").getImage();
         

@@ -7,12 +7,12 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Set;
 import javax.swing.ImageIcon;
-import javax.swing.JPanel;
 
 public class Player extends GameObject {
     private static final int SPEED = 2;
     private int maxX;
     private int maxY;
+    private Game game;
     private static final int ANIMATION_SPEED = 3;
     private Image currentImage;
     private int frameIndex = 0;
@@ -22,10 +22,11 @@ public class Player extends GameObject {
     private Image[] walkUp, walkDown, walkLeft, walkRight;
     private Image[] walkUpRight, walkUpLeft, walkDownRight, walkDownLeft;
 
-    Player(int x, int y, int panelWidth, int panelHeight, List<Obstacle> obstacles, JPanel gamePanel) {
+    Player(int x, int y, int panelWidth, int panelHeight, List<Obstacle> obstacles, Game game) {
         super(x, y, 40, 60);
         this.maxX = panelWidth;
         this.maxY = panelHeight;
+        this.game = game;
 
         // Cardinal directions
         walkUp = new Image[]{
@@ -117,10 +118,10 @@ public class Player extends GameObject {
         double dx = 0;
         double dy = 0;
 
-        boolean movingUp = heldKeys.contains(KeyEvent.VK_W) || heldKeys.contains(KeyEvent.VK_UP);
-        boolean movingDown = heldKeys.contains(KeyEvent.VK_S) || heldKeys.contains(KeyEvent.VK_DOWN);
-        boolean movingLeft = heldKeys.contains(KeyEvent.VK_A) || heldKeys.contains(KeyEvent.VK_LEFT);
-        boolean movingRight = heldKeys.contains(KeyEvent.VK_D) || heldKeys.contains(KeyEvent.VK_RIGHT);
+        boolean movingUp = heldKeys.contains(KeyEvent.VK_W);
+        boolean movingDown = heldKeys.contains(KeyEvent.VK_S);
+        boolean movingLeft = heldKeys.contains(KeyEvent.VK_A);
+        boolean movingRight = heldKeys.contains(KeyEvent.VK_D);
 
         if (movingUp) dy -= 1;
         if (movingDown) dy += 1;
@@ -160,6 +161,23 @@ public class Player extends GameObject {
         else if (movingDown) updateAnimation(walkDown);
         else if (movingLeft) updateAnimation(walkLeft);
         else if (movingRight) updateAnimation(walkRight);
+
+        boolean shootUp = heldKeys.contains(KeyEvent.VK_UP);
+        boolean shootDown = heldKeys.contains(KeyEvent.VK_DOWN);
+        boolean shootLeft = heldKeys.contains(KeyEvent.VK_LEFT);
+        boolean shootRight = heldKeys.contains(KeyEvent.VK_RIGHT);
+
+        int centerX = this.getX() + (width/2);
+        int centerY = this.getY() + (height/2);
+
+        if (shootRight && shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTHWEST));
+        else if (shootUp && shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.NORTHEAST));
+        else if (shootDown && shootRight) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHWEST));
+        else if (shootDown && shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHEAST));
+        else if (shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTH));
+        else if (shootDown) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTH));
+        else if (shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.EAST));
+        else if (shootRight) game.addBullet(new Bullet(centerX, centerY, Direction.WEST));
     }
     
     public int getX() { return x; }

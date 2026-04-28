@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 import javax.swing.JLayeredPane;
 
 public class MainLayeredPane extends JLayeredPane{
-    private int panelWidth, panelHeight;
     private Consumer<String> switchPanel;
     private Game game;
     
@@ -14,8 +13,6 @@ public class MainLayeredPane extends JLayeredPane{
     private ExitConfirmPanel exitConfirm;
 
     public MainLayeredPane(int panelWidth, int panelHeight){
-        this.panelWidth = panelWidth;
-        this.panelHeight = panelHeight;
 
         main = new MainPanel(panelWidth, panelHeight, this);
         switchPanel = main.getSwitchPanel();

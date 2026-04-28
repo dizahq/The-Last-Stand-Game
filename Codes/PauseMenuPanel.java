@@ -8,7 +8,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class PauseMenuPanel extends OverlayPanel{
-    private int panelWidth, panelHeight;
     private Consumer<String> switchPanel;
     private Game game;
 
