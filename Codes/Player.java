@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Set;
+
 import javax.swing.ImageIcon;
 
 public class Player extends GameObject {
@@ -17,6 +18,9 @@ public class Player extends GameObject {
     private Image currentImage;
     private int frameIndex = 0;
     private int animationTick = 0;
+    private int fireRate = 500;
+    private long lastFired;
+    private boolean canFire = true;
 
     // 8 directional sprite arrays
     private Image[] walkUp, walkDown, walkLeft, walkRight;
@@ -170,14 +174,23 @@ public class Player extends GameObject {
         int centerX = this.getX() + (width/2);
         int centerY = this.getY() + (height/2);
 
-        if (shootRight && shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTHWEST));
-        else if (shootUp && shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.NORTHEAST));
-        else if (shootDown && shootRight) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHWEST));
-        else if (shootDown && shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHEAST));
-        else if (shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTH));
-        else if (shootDown) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTH));
-        else if (shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.EAST));
-        else if (shootRight) game.addBullet(new Bullet(centerX, centerY, Direction.WEST));
+        if(!canFire && System.currentTimeMillis() - lastFired >= fireRate){
+                canFire = true;
+        }
+        if(canFire){
+            if (shootRight && shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTHWEST));
+            else if (shootUp && shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.NORTHEAST));
+            else if (shootDown && shootRight) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHWEST));
+            else if (shootDown && shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHEAST));
+            else if (shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTH));
+            else if (shootDown) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTH));
+            else if (shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.EAST));
+            else if (shootRight) game.addBullet(new Bullet(centerX, centerY, Direction.WEST));
+            else return;
+            
+            lastFired = System.currentTimeMillis();
+            canFire = false;
+        }
     }
     
     public int getX() { return x; }
