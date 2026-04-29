@@ -122,10 +122,10 @@ public class Player extends GameObject {
         double dx = 0;
         double dy = 0;
 
-        boolean movingUp = heldKeys.contains(KeyEvent.VK_W);
-        boolean movingDown = heldKeys.contains(KeyEvent.VK_S);
-        boolean movingLeft = heldKeys.contains(KeyEvent.VK_A);
-        boolean movingRight = heldKeys.contains(KeyEvent.VK_D);
+        boolean movingUp = heldKeys.contains(KeyEvent.VK_UP);
+        boolean movingDown = heldKeys.contains(KeyEvent.VK_DOWN);
+        boolean movingLeft = heldKeys.contains(KeyEvent.VK_LEFT);
+        boolean movingRight = heldKeys.contains(KeyEvent.VK_RIGHT);
 
         if (movingUp) dy -= 1;
         if (movingDown) dy += 1;
@@ -166,10 +166,10 @@ public class Player extends GameObject {
         else if (movingLeft) updateAnimation(walkLeft);
         else if (movingRight) updateAnimation(walkRight);
 
-        boolean shootUp = heldKeys.contains(KeyEvent.VK_UP);
-        boolean shootDown = heldKeys.contains(KeyEvent.VK_DOWN);
-        boolean shootLeft = heldKeys.contains(KeyEvent.VK_LEFT);
-        boolean shootRight = heldKeys.contains(KeyEvent.VK_RIGHT);
+        boolean shootUp = heldKeys.contains(KeyEvent.VK_W);
+        boolean shootDown = heldKeys.contains(KeyEvent.VK_S);
+        boolean shootLeft = heldKeys.contains(KeyEvent.VK_A);
+        boolean shootRight = heldKeys.contains(KeyEvent.VK_D);
 
         int centerX = this.getX() + (width/2);
         int centerY = this.getY() + (height/2);
@@ -179,13 +179,13 @@ public class Player extends GameObject {
         }
         if(canFire){
             if (shootRight && shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTHWEST));
-            else if (shootUp && shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.NORTHEAST));
-            else if (shootDown && shootRight) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHWEST));
-            else if (shootDown && shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHEAST));
+            else if (shootLeft && shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTHEAST));
+            else if (shootRight && shootDown) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHWEST));
+            else if (shootLeft && shootDown) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHEAST));
             else if (shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTH));
             else if (shootDown) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTH));
-            else if (shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.EAST));
             else if (shootRight) game.addBullet(new Bullet(centerX, centerY, Direction.WEST));
+            else if (shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.EAST));
             else return;
             
             lastFired = System.currentTimeMillis();

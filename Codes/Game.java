@@ -29,7 +29,7 @@ public class Game extends JPanel implements Runnable {
     private List<Obstacle> obstacles = new ArrayList<>();
     private List<Enemy> enemies = new ArrayList<>();
     private List<Bullet> bullets = new ArrayList<>();
-    private static final int ENEMY_COUNT = 6; // how many enemies you want
+    private static final int ENEMY_COUNT = 3; // how many enemies you want
     
     private Image grassImage;
     private Image lifeFullImage;
@@ -242,9 +242,28 @@ public class Game extends JPanel implements Runnable {
             if (bullet.getX() < 0 || bullet.getX() > panelWidth || 
                 bullet.getY() < 0 || bullet.getY() > panelHeight) {
                 bulletIter.remove();
-
                 // test
                 System.out.println("[Game] Bullet removed. Remaining: " + bullets.size());
+                continue;
+            }
+
+            // Bullet vs enemy collision
+            boolean bulletHit = false;
+            for (Enemy enemy : enemies) {
+                if (bullet.getBounds().intersects(enemy.getBounds())) {
+                    enemy.respawn(); 
+                    bulletHit = true;
+
+                    // test
+                    System.out.println("[Game] Enemy hit by bullet!");
+                    break;
+                }
+            }
+            if (bulletHit) {
+                bulletIter.remove();
+                
+                // test
+                System.out.println("[Game] Bullet removed (hit enemy). Remaining: " + bullets.size());
             }
         }
     }
