@@ -29,8 +29,15 @@ public class Game extends JPanel implements Runnable {
     private List<Obstacle> obstacles = new ArrayList<>();
     private List<Enemy> enemies = new ArrayList<>();
     private List<Bullet> bullets = new ArrayList<>();
-    private static final int ENEMY_COUNT = 3; // how many enemies you want
+    private static final int ENEMY_COUNT = 6; // how many enemies you want
+    
     private Image grassImage;
+    private Image lifeFullImage;
+    private Image lifeEmptyImage;
+    private static final int MAX_LIVES = 4;
+    private static final int HEART_SIZE = 60;
+    private static final int HEART_PADDING = 16;
+    private static final int HEART_MARGIN = 16;
 
     private int currentLevel;
     private int lives = 4;
@@ -49,9 +56,11 @@ public class Game extends JPanel implements Runnable {
 
         setLayout(null);
 
-        // Load assets
+        // Load assets (bg + lives)
         grassImage = new ImageIcon("Entities/Background/grass.png").getImage();
-        
+        lifeFullImage = new ImageIcon("Entities/UserInterface/life_Full.png").getImage();
+        lifeEmptyImage = new ImageIcon("Entities/UserInterface/life_Empty.png").getImage();
+
         // Initialize game objects
         obstacles.add(new Obstacle(200, 200, 100, 100, panelWidth, panelHeight));
         obstacles.add(new Obstacle(400, 300, 100, 100, panelWidth, panelHeight));
@@ -255,9 +264,9 @@ public class Game extends JPanel implements Runnable {
         // Draw game ojects
         for (Obstacle obs : obstacles) obs.draw(g);
         for (Bullet bullet : bullets) bullet.draw(g);
-        if (player != null) player.draw(g); 
         for (Enemy enemy : enemies) enemy.draw(g);
         if (player != null) player.draw(g); // draw player on top
+        drawLivesHUD(g);
     }
 
     public void addBullet(Bullet bullet){
@@ -278,9 +287,20 @@ public class Game extends JPanel implements Runnable {
 
         System.out.println("[Game] Game reset.");
     }
-    
+
     public MainLayeredPane getRootLayeredPane() {
         return rootLayeredPane;
+    }
+
+    private void drawLivesHUD(Graphics g) {
+        for (int i = 0; i < MAX_LIVES; i++) {
+            Image img = (i < lives) ? lifeFullImage : lifeEmptyImage;
+            int heartX = HEART_MARGIN + i * (HEART_SIZE + HEART_PADDING);
+            int heartY = HEART_MARGIN;
+            if (img != null && img.getWidth(null) != -1) {
+                g.drawImage(img, heartX, heartY, HEART_SIZE, HEART_SIZE, this);
+            }
+        }
     }
 
     public int getCurrentLevel() {
