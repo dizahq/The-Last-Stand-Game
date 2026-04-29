@@ -29,7 +29,6 @@ public class Game extends JPanel implements Runnable {
     private List<Obstacle> obstacles = new ArrayList<>();
     private List<Enemy> enemies = new ArrayList<>();
     private List<Bullet> bullets = new ArrayList<>();
-    private static final int ENEMY_COUNT = 3; // how many enemies you want
     
     private Image grassImage;
     private Image lifeFullImage;
@@ -49,6 +48,13 @@ public class Game extends JPanel implements Runnable {
     private MainLayeredPane rootLayeredPane;
     private JButton pauseBtn = new JButton("Pause");
 
+    // spawning parameters
+    private double lastEnemySpawnTime;
+    private int spawnCount;
+    private int spawnRate = 5000;
+    private int currentRespawn = 0;
+    private int respawns = 3;
+
     public Game(int panelWidth, int panelHeight, MainLayeredPane rootLayeredPane) {
         this.rootLayeredPane = rootLayeredPane;
         this.panelWidth = panelWidth;
@@ -61,17 +67,7 @@ public class Game extends JPanel implements Runnable {
         lifeFullImage = new ImageIcon("Entities/UserInterface/life_Full.png").getImage();
         lifeEmptyImage = new ImageIcon("Entities/UserInterface/life_Empty.png").getImage();
 
-        // Initialize game objects
-        obstacles.add(new Obstacle(200, 200, 100, 100, panelWidth, panelHeight));
-        obstacles.add(new Obstacle(400, 300, 100, 100, panelWidth, panelHeight));
-        obstacles.add(new Obstacle(600, 150, 100, 100, panelWidth, panelHeight));
-        player = new Player(300, 100, panelWidth, panelHeight, obstacles, this);
-
-        for (int i = 0; i < ENEMY_COUNT; i++) {
-            Enemy e = new Enemy(0, 0, panelWidth, panelHeight);
-            e.respawn(); // random edge position
-            enemies.add(e);
-        }
+        initializeWave(currentLevel);
 
         // Pause button
         pauseBtn.setBounds(panelWidth - 125, 20, 100, 40);
@@ -251,7 +247,7 @@ public class Game extends JPanel implements Runnable {
             boolean bulletHit = false;
             for (Enemy enemy : enemies) {
                 if (bullet.getBounds().intersects(enemy.getBounds())) {
-                    enemy.respawn(); 
+                    enemies.remove(enemy);
                     bulletHit = true;
 
                     // test
@@ -265,6 +261,22 @@ public class Game extends JPanel implements Runnable {
                 // test
                 System.out.println("[Game] Bullet removed (hit enemy). Remaining: " + bullets.size());
             }
+        }
+
+        while (currentRespawn < respawns) {
+            if(System.currentTimeMillis() - lastEnemySpawnTime > spawnRate){
+                spawnEnemies(spawnCount);
+                System.out.println(currentRespawn);
+            }else{
+                break;
+            } 
+        }
+
+        if(currentRespawn == respawns && enemies.isEmpty()){
+            currentLevel++;
+            // test
+            System.out.println("[Game] Level Up! Current Level: " + currentLevel);
+            initializeWave(currentLevel);
         }
     }
 
@@ -280,12 +292,31 @@ public class Game extends JPanel implements Runnable {
             g.fillRect(0, 0, getWidth(), getHeight());
         }
 
-        // Draw game ojects
+        // Draw game objects
         for (Obstacle obs : obstacles) obs.draw(g);
         for (Bullet bullet : bullets) bullet.draw(g);
         for (Enemy enemy : enemies) enemy.draw(g);
         if (player != null) player.draw(g); // draw player on top
         drawLivesHUD(g);
+    }
+
+    public void initializeWave(int currentLevel){
+        // Initialize game objects
+        player = new Player(panelWidth/2, panelHeight/2, panelWidth, panelHeight, this);
+        currentRespawn = 0;
+        spawnCount = ((currentLevel * currentLevel) + 20)/3;
+        spawnEnemies(spawnCount);
+        
+    }
+
+    public void spawnEnemies(int enemyCount){
+        for (int i = 0; i < enemyCount; i++) {
+            Enemy e = new Enemy(0, 0, panelWidth, panelHeight);
+            e.respawn(); // random edge position
+            enemies.add(e);
+        }
+        lastEnemySpawnTime = System.currentTimeMillis();
+        currentRespawn++;
     }
 
     public void addBullet(Bullet bullet){

@@ -26,7 +26,7 @@ public class Player extends GameObject {
     private Image[] walkUp, walkDown, walkLeft, walkRight;
     private Image[] walkUpRight, walkUpLeft, walkDownRight, walkDownLeft;
 
-    Player(int x, int y, int panelWidth, int panelHeight, List<Obstacle> obstacles, Game game) {
+    Player(int x, int y, int panelWidth, int panelHeight, Game game) {
         super(x, y, 40, 60);
         this.maxX = panelWidth;
         this.maxY = panelHeight;
