@@ -11,8 +11,8 @@ import java.nio.file.Paths;
 
 // Handles all file reading and writing
 public class SaveManager {
-    private static final String SAVE_DIR = "saves";
-    private static final String SAVE_FILE = SAVE_DIR + File.separator + "savegame.dat";
+    private static final String SAVE_DIR = "Saves";
+    private static final String SAVE_FILE = SAVE_DIR + File.separator + "Savegame.dat";
 
     // Checks if a save file exists
     public static boolean hasSave() {

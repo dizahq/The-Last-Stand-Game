@@ -21,6 +21,7 @@ public class ExitConfirmPanel extends OverlayPanel{
         cancelExitBtn.setPreferredSize(new Dimension(200, 50));
 
         confirmExitBtn.addActionListener(e -> {
+            SaveManager.deleteSave();
             System.exit(0);
         });
         cancelExitBtn.addActionListener(e -> {

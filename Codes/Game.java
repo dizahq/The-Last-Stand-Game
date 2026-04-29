@@ -1,18 +1,20 @@
 package Codes;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 public class Game extends JPanel implements Runnable {
     private Thread gameThread;
@@ -33,6 +35,8 @@ public class Game extends JPanel implements Runnable {
     private int currentLevel;
     private int lives = 4;
 
+    private int panelWidth, panelHeight;
+
     private final Set<Integer> heldKeys = java.util.Collections.synchronizedSet(new HashSet<>());
     
     private MainLayeredPane rootLayeredPane;
@@ -40,8 +44,9 @@ public class Game extends JPanel implements Runnable {
 
     public Game(int panelWidth, int panelHeight, MainLayeredPane rootLayeredPane) {
         this.rootLayeredPane = rootLayeredPane;
+        this.panelWidth = panelWidth;
+        this.panelHeight = panelHeight;
 
-        // Panel setup
         setLayout(null);
 
         // Load assets
@@ -68,12 +73,23 @@ public class Game extends JPanel implements Runnable {
         });
         add(pauseBtn);
 
+        // TEMP: Game over test button - will remove once everything's set
+        JButton testGameOverBtn = new JButton("Test Game Over");
+        testGameOverBtn.setBounds(panelWidth - 125, 70, 100, 40);
+        testGameOverBtn.setFocusable(false);
+        testGameOverBtn.addActionListener(e -> {
+            stopGameThread();
+            SwingUtilities.invokeLater(() -> rootLayeredPane.getGameOver().setVisible(true));
+        });
+        add(testGameOverBtn);
+
         // Keylisteners
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 heldKeys.add(e.getKeyCode());
             }
+
             @Override
             public void keyReleased(KeyEvent e) {
                 heldKeys.remove(e.getKeyCode());
@@ -198,15 +214,29 @@ public class Game extends JPanel implements Runnable {
                 System.out.println("[Game] Player hit! Lives: " + lives);
 
                 if (lives <= 0) {
-                stopGameThread();
-                    System.out.println("[Game] Game Over.");
-                    // TODO: show game over screen
+                    stopGameThread();
+                    SwingUtilities.invokeLater(() -> 
+                        rootLayeredPane.getGameOver().setVisible(true)
+                    );
+                    return;
                 }
             }
         }
 
-        for (Bullet bullet : bullets){
+        // Memory cleanup
+        Iterator<Bullet> bulletIter = bullets.iterator();
+        while (bulletIter.hasNext()) {
+            Bullet bullet = bulletIter.next();
             bullet.update();
+
+            // Remove bullet if it has gone off-screen + prevents bullets list from growing forever
+            if (bullet.getX() < 0 || bullet.getX() > panelWidth || 
+                bullet.getY() < 0 || bullet.getY() > panelHeight) {
+                bulletIter.remove();
+
+                // test
+                System.out.println("[Game] Bullet removed. Remaining: " + bullets.size());
+            }
         }
     }
 
@@ -234,6 +264,21 @@ public class Game extends JPanel implements Runnable {
         bullets.add(bullet);
     }
 
+    public void resetGame() {
+        // Reset state
+        lives = 4;
+        currentLevel = 0;
+        bullets.clear();
+        player.setPosition(300, 100);
+
+        // Reset enemies to fresh edge positions
+        for (Enemy enemy : enemies) {
+            enemy.respawn();
+        }
+
+        System.out.println("[Game] Game reset.");
+    }
+    
     public MainLayeredPane getRootLayeredPane() {
         return rootLayeredPane;
     }

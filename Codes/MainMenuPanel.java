@@ -73,11 +73,15 @@ public class MainMenuPanel extends JPanel{
     }
 
     public void newGame(){
-        game.setCurrentLevel(0);
-        game.setLives(4);
+        SaveManager.deleteSave();
+        game.resetGame();
         switchPanel.accept("game");
         game.startGameThread();
+
+        // test
+        System.out.println("[MainMenuPanel] New Game.");
     }
+
     public void continueGame(){
         SaveData data = SaveManager.load();
         // File read

@@ -6,7 +6,7 @@ public class Bullet extends GameObject{
     private Direction direction;
     private int speed;
     public Bullet(int x, int y, Direction direction){
-        super(x, y, 10, 10);
+        super(x, y, 20, 20);
         this.direction = direction;
         this.speed = -10;
     }

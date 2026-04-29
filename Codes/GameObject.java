@@ -28,4 +28,11 @@ abstract class GameObject {
 
     //Defines how the specific object should be painted on screen.
     public abstract void draw(Graphics g);
+
+    public int getX() {
+        return x;
+    }
+    public int getY() {
+        return y;
+    }
 }

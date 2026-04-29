@@ -1,7 +1,6 @@
 package Codes;
 
 import java.awt.Toolkit;
-
 import javax.swing.JFrame;
 
 public class TheLastStand extends JFrame{
