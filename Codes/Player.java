@@ -21,6 +21,7 @@ public class Player extends GameObject {
     private int fireRate = 500;
     private long lastFired;
     private boolean canFire = true;
+    private Image[] lastStrip = null;
 
     // 8 directional sprite arrays
     private Image[] walkUp, walkDown, walkLeft, walkRight;
@@ -89,14 +90,20 @@ public class Player extends GameObject {
     }
 
     private void updateAnimation(Image[] frames) {
+        // reset if direction changed
+        if (frames != lastStrip) {
+            frameIndex = 0;
+            animationTick = 0;
+            lastStrip = frames;
+        }
+
         animationTick++;
         if (animationTick >= ANIMATION_SPEED) {
             animationTick = 0;
             frameIndex++;
-            if (frameIndex >= frames.length) {
-                frameIndex = 0;
-            }
+            if (frameIndex >= frames.length) frameIndex = 0;
         }
+
         currentImage = frames[frameIndex];
     }
 

@@ -9,11 +9,12 @@ import javax.swing.ImageIcon;
 
 public class Enemy extends GameObject {
     private static final int SPEED             = 1;
-    private static final int ATTACK_RANGE      = 50;
+    private static final int ATTACK_RANGE      = 55;
     private static final int CELL              = 16;
     private static final int PATH_REFRESH      = 60;
     private static final int MOVE_THRESHOLD    = 45;
     private static final int CONTACT_COOLDOWN_MAX = 90;
+    private int strikeCount = 0;
 
     private int contactCooldown = 0;
     private int lastTargetX     = -1;
@@ -23,7 +24,9 @@ public class Enemy extends GameObject {
 
     private enum State  { WALK, ATTACK }
     private enum Facing { UP, DOWN, LEFT, RIGHT }
+
     private State  state  = State.WALK;
+    private State  lastState  = State.WALK;
     private Facing facing = Facing.DOWN;
 
     private final Deque<int[]> path = new ArrayDeque<>();
@@ -71,6 +74,8 @@ public class Enemy extends GameObject {
 
     public void respawn() {
         int side = (int)(Math.random() * 4);
+        strikeCount = 0;
+
         switch (side) {
             case 0 -> { x = (int)(Math.random() * panelWidth);  y = 0; }
             case 1 -> { x = (int)(Math.random() * panelWidth);  y = panelHeight - height; }
@@ -101,19 +106,26 @@ public class Enemy extends GameObject {
         // State switch
        if (dist <= ATTACK_RANGE) {
             state = State.ATTACK;
-            // reset attack when previous swing is fully done
-            if (isAttackFinished() && attackLanded) {
+            // just switched from WALK to ATTACK — always reset
+            if (lastState == State.WALK) {
+                attackLanded  = false;
+                frameIndex    = 0;
+                animationTick = 0;
+            }
+            // loop attack after finishing a full swing
+            else if (isAttackFinished() && attackLanded) {
                 attackLanded  = false;
                 frameIndex    = 0;
                 animationTick = 0;
             }
         } else if (state == State.ATTACK && isAttackFinished()) {
-            // player walked away — go back to walking
             state         = State.WALK;
             attackLanded  = false;
             frameIndex    = 0;
             animationTick = 0;
+            strikeCount = 0;
         }
+        lastState = state;
 
         if (state == State.ATTACK) {
             boolean dmg = tickAttackAnimation(getAttackStrip());
@@ -322,8 +334,13 @@ public class Enemy extends GameObject {
             animationTick = 0;
             if (frameIndex < frames.length - 1) frameIndex++;
             if (frameIndex == 2 && !attackLanded) {
-                isDamageFrame = true;
                 attackLanded = true;
+                strikeCount++;
+                // only deal damage on every 2nd strike
+                if (strikeCount >= 2) {
+                    isDamageFrame = true;
+                    strikeCount = 0; // reset for next 2-strike cycle
+                }
             }
         }
         currentImage = frames[frameIndex];

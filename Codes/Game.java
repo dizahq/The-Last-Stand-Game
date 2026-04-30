@@ -202,17 +202,16 @@ public class Game extends JPanel implements Runnable {
     private void update() {
         player.update(heldKeys, obstacles);
 
-        int playerCX = player.getX() + 30;
+        int playerCX = player.getX() + 20;
         int playerCY = player.getY() + 30;
 
         // --- Enemy movement + player damage ---
         for (Enemy enemy : enemies) {
            boolean dealDamage = enemy.moveTowards(playerCX, playerCY, obstacles);
 
-            // Swing damage — fires only on attack animation frame 2 (the actual swing moment)
-            if (dealDamage && enemy.getBounds().intersects(player.getBounds())) {
+            if (dealDamage) {
                 lives--;
-                System.out.println("[Game] Player hit by swing! Lives: " + lives);
+                System.out.println("[Game] Player hit! Lives: " + lives);
                 if (lives <= 0) {
                     stopGameThread();
                     SwingUtilities.invokeLater(() ->
