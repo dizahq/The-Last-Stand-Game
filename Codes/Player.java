@@ -77,6 +77,7 @@ public class Player extends GameObject {
             new ImageIcon("Entities/Player/Normal/lowerdiagonal_right3.png").getImage(),
             new ImageIcon("Entities/Player/Normal/lowerdiagonal_right4.png").getImage()
         };
+        
         walkDownLeft = new Image[]{
             new ImageIcon("Entities/Player/Normal/lowerdiagonal_left1.png").getImage(),
             new ImageIcon("Entities/Player/Normal/lowerdiagonal_left2.png").getImage(),

@@ -39,12 +39,11 @@ public class GameOverPanel extends OverlayPanel {
 
     public void restart() {
         SaveManager.deleteSave();
-        game.resetGame();
-        setVisible(false);
-        switchPanel.accept("game");
-        game.startGameThread();
-
-        // test
+        setVisible(false);          // 1. hide game over screen first
+        game.resetGame();           // 2. reset state + clear keys
+        switchPanel.accept("game"); // 3. switch to game panel (makes it visible)
+        game.startGameThread();     // 4. start loop last, panel is visible and focused now
+    
         System.out.println("[GameOverPanel] Restarting game.");
     }
 

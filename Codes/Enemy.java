@@ -12,7 +12,7 @@ public class Enemy extends GameObject {
     private static final int ATTACK_RANGE      = 50;
     private static final int CELL              = 16;
     private static final int PATH_REFRESH      = 60;
-    private static final int MOVE_THRESHOLD    = 50;
+    private static final int MOVE_THRESHOLD    = 45;
     private static final int CONTACT_COOLDOWN_MAX = 90;
 
     private int contactCooldown = 0;
@@ -99,9 +99,16 @@ public class Enemy extends GameObject {
         double dist = Math.hypot(targetX - centerX, targetY - centerY);
 
         // State switch
-        if (dist <= ATTACK_RANGE) {
+       if (dist <= ATTACK_RANGE) {
             state = State.ATTACK;
+            // reset attack when previous swing is fully done
+            if (isAttackFinished() && attackLanded) {
+                attackLanded  = false;
+                frameIndex    = 0;
+                animationTick = 0;
+            }
         } else if (state == State.ATTACK && isAttackFinished()) {
+            // player walked away — go back to walking
             state         = State.WALK;
             attackLanded  = false;
             frameIndex    = 0;
@@ -110,7 +117,7 @@ public class Enemy extends GameObject {
 
         if (state == State.ATTACK) {
             boolean dmg = tickAttackAnimation(getAttackStrip());
-            return dmg && !attackLanded;
+            return dmg;
         }
 
         // ── FIX 1: Stuck detection now resets stuckTimer when not stuck,
@@ -199,8 +206,7 @@ public class Enemy extends GameObject {
     }
 
     // A* pathfinder 
-    private List<int[]> astar(int startX, int startY, int goalX, int goalY,
-                               List<Obstacle> obstacles) {
+    private List<int[]> astar(int startX, int startY, int goalX, int goalY, List<Obstacle> obstacles) {
         int cols = panelWidth  / CELL + 1;
         int rows = panelHeight / CELL + 1;
 
@@ -302,8 +308,9 @@ public class Enemy extends GameObject {
 
     private Obstacle getBlockingObstacle(int nx, int ny, List<Obstacle> obstacles) {
         Rectangle test = new Rectangle(nx, ny, width, height);
-        for (Obstacle obs : obstacles)
+        for (Obstacle obs : obstacles){
             if (test.intersects(obs.getBounds())) return obs;
+        }
         return null;
     }
 
@@ -314,7 +321,10 @@ public class Enemy extends GameObject {
         if (animationTick >= ATTACK_ANIM_SPEED) {
             animationTick = 0;
             if (frameIndex < frames.length - 1) frameIndex++;
-            if (frameIndex == 2) { isDamageFrame = true; attackLanded = true; }
+            if (frameIndex == 2 && !attackLanded) {
+                isDamageFrame = true;
+                attackLanded = true;
+            }
         }
         currentImage = frames[frameIndex];
         return isDamageFrame;
@@ -325,10 +335,8 @@ public class Enemy extends GameObject {
     }
 
     private void updateFacing(double moveX, double moveY) {
-        if (Math.abs(moveX) > Math.abs(moveY))
-            facing = (moveX > 0) ? Facing.RIGHT : Facing.LEFT;
-        else
-            facing = (moveY > 0) ? Facing.DOWN : Facing.UP;
+        if (Math.abs(moveX) > Math.abs(moveY)) facing = (moveX > 0) ? Facing.RIGHT : Facing.LEFT;
+        else facing = (moveY > 0) ? Facing.DOWN : Facing.UP;
     }
 
     private Image[] getWalkStrip() {
