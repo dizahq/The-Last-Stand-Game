@@ -10,7 +10,11 @@ import java.util.Set;
 import javax.swing.ImageIcon;
 
 public class Player extends GameObject {
-    private static final int SPEED = 2;
+    private int speed = 2;
+    private int maxLives = 4;
+    private int currentLives;
+    private Powerup currentPowerup = null;
+    private long lastPowerupTime;
     private int maxX;
     private int maxY;
     private Game game;
@@ -43,6 +47,7 @@ public class Player extends GameObject {
         this.maxX = panelWidth;
         this.maxY = panelHeight;
         this.game = game;
+        this.currentLives = 4;
 
         // Cardinal directions
         walkUp = new Image[]{
@@ -155,7 +160,7 @@ public class Player extends GameObject {
         }
     }
 
-    public void update(Set<Integer> heldKeys, List<Obstacle> obstacles) {
+    public void update(Set<Integer> heldKeys, List<Obstacle> obstacles, Powerup powerup) {
         int oldX = this.x;
         int oldY = this.y;
 
@@ -185,9 +190,9 @@ public class Player extends GameObject {
             double length = Math.sqrt(dx * dx + dy * dy);
         
             // Divide by length to make the total magnitude 1.0, 
-            // then multiply by SPEED.
-            dx = (dx / length) * SPEED;
-            dy = (dy / length) * SPEED;
+            // then multiply by speed.
+            dx = (dx / length) * speed;
+            dy = (dy / length) * speed;
         }   
 
         // 3. Apply movement with bounds checking
@@ -201,6 +206,13 @@ public class Player extends GameObject {
                 this.y = oldY;
                 break;
             }
+        }
+        
+        if (powerup != null && getBounds().intersects(powerup.getBounds())){
+            powerup.applyEffect(this);
+            this.currentPowerup = powerup;
+            game.setActivePowerup(null);
+            lastPowerupTime = System.currentTimeMillis();
         }
 
         // 5. 8-directional animation logic (Keep your original logic here)
@@ -261,12 +273,42 @@ public class Player extends GameObject {
             attackStartTime = System.currentTimeMillis();
         }
     }
-    
+
+    public void addLife(){
+        currentLives++;
+    }
+
+    public void deductLife(){
+        currentLives--;
+    }
+
     public int getX() { return x; }
     public int getY() { return y; }
+    public int getMaxLives() { return maxLives; }
+    public int getCurrentLives() { return currentLives; }
+    public Powerup getCurrentPowerup() { return currentPowerup; }
+    public long getLastPowerupTime() { return lastPowerupTime; }
 
     public void setPosition(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+
+    public void setCurrentLives(int currentLives) {
+        this.currentLives = currentLives;
+    }
+
+    public void setFireRate(int fireRate) {
+        this.fireRate = fireRate;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+
+    public void resetPowerups(){
+        currentPowerup = null;
+        this.speed = 2;
+        this.fireRate = 500;
     }
 }

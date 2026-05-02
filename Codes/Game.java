@@ -9,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -30,17 +31,16 @@ public class Game extends JPanel implements Runnable {
     private List<Obstacle> obstacles = new CopyOnWriteArrayList<>();
     private List<Enemy> enemies = new CopyOnWriteArrayList<>();
     private List<Bullet> bullets = new CopyOnWriteArrayList<>();
+    private Powerup activePowerup = null;
 
     private Image grassImage;
     private Image lifeFullImage;
     private Image lifeEmptyImage;
-    private static final int MAX_LIVES = 4;
     private static final int HEART_SIZE = 60;
     private static final int HEART_PADDING = 16;
     private static final int HEART_MARGIN = 16;
 
     private int currentLevel;
-    private int lives = 4;
 
     private int panelWidth, panelHeight;
 
@@ -119,7 +119,9 @@ public class Game extends JPanel implements Runnable {
         gameThread.setDaemon(true);
         gameThread.start();
 
-        SwingUtilities.invokeLater(()-> requestFocusInWindow());
+        SwingUtilities.invokeLater(()-> {
+            requestFocusInWindow();
+        });
 
         System.out.println("[Game] Game loop starts.");
     }
@@ -200,7 +202,7 @@ public class Game extends JPanel implements Runnable {
     }
 
     private void update() {
-        player.update(heldKeys, obstacles);
+        player.update(heldKeys, obstacles, activePowerup);
 
         int playerCX = player.getX() + 20;
         int playerCY = player.getY() + 30;
@@ -210,9 +212,9 @@ public class Game extends JPanel implements Runnable {
            boolean dealDamage = enemy.moveTowards(playerCX, playerCY, obstacles);
 
             if (dealDamage) {
-                lives--;
-                System.out.println("[Game] Player hit! Lives: " + lives);
-                if (lives <= 0) {
+                player.deductLife();;
+                System.out.println("[Game] Player hit! Lives: " + player.getCurrentLives());
+                if (player.getCurrentLives() <= 0) {
                     stopGameThread();
                     SwingUtilities.invokeLater(() ->
                         rootLayeredPane.getGameOver().setVisible(true)
@@ -244,6 +246,26 @@ public class Game extends JPanel implements Runnable {
                     bulletsToRemove.add(bullet);
                     enemiesToRemove.add(enemy);
                     System.out.println("[Game] Enemy hit by bullet!");
+                    // Powerup drop
+                    Random dropChance = new Random();
+                    if(dropChance.nextInt(10) == 0 && activePowerup == null){
+                        Random powerupType = new Random();
+                        int powerup = powerupType.nextInt(3)+1;
+                        switch (powerup) {
+                            case 1:
+                                activePowerup = new FireRatePowerup(enemy.getX(), enemy.getY());
+                                break;
+                            case 2:
+                                activePowerup = new MovementSpeedPowerup(enemy.getX(), enemy.getY());
+                                break;
+                            case 3:
+                                activePowerup = new HealPowerUp(enemy.getX(), enemy.getY());
+                                break;
+                        
+                            default:
+                                break;
+                        }
+                    }
                     break;
                 }
             }
@@ -272,6 +294,8 @@ public class Game extends JPanel implements Runnable {
             System.out.println("[Game] Level Up! Current Level: " + currentLevel);
             initializeWave(currentLevel);
         }
+
+        checkPowerup(player);
     }
 
     @Override
@@ -290,8 +314,13 @@ public class Game extends JPanel implements Runnable {
         for (Obstacle obs : obstacles) obs.draw(g);
         for (Bullet bullet : bullets) bullet.draw(g);
         for (Enemy enemy : enemies) enemy.draw(g);
-        if (player != null) player.draw(g); // draw player on top
-        drawLivesHUD(g);
+        if(this.activePowerup != null){
+            activePowerup.draw(g);
+        }
+        if (player != null) {
+            player.draw(g); // draw player on top
+            drawLivesHUD(g, player);
+        }
     }
 
     public void initializeWave(int currentLevel) {
@@ -318,7 +347,6 @@ public class Game extends JPanel implements Runnable {
     }
 
     public void resetGame() {
-        lives = 4;
         currentLevel = 0;
         bullets.clear();
         enemies.clear();
@@ -332,9 +360,11 @@ public class Game extends JPanel implements Runnable {
         return rootLayeredPane;
     }
 
-    private void drawLivesHUD(Graphics g) {
-        for (int i = 0; i < MAX_LIVES; i++) {
-            Image img = (i < lives) ? lifeFullImage : lifeEmptyImage;
+    private void drawLivesHUD(Graphics g, Player player) {
+        int maxLives = player.getMaxLives();
+        int currentLives = player.getCurrentLives();
+        for (int i = 0; i < maxLives; i++) {
+            Image img = (i < currentLives) ? lifeFullImage : lifeEmptyImage;
             int heartX = HEART_MARGIN + i * (HEART_SIZE + HEART_PADDING);
             int heartY = HEART_MARGIN;
             if (img != null && img.getWidth(null) != -1) {
@@ -342,14 +372,30 @@ public class Game extends JPanel implements Runnable {
             }
         }
     }
+    // Check if powerup is past its duration
+    private void checkPowerup(Player player){
+        if(player.getCurrentPowerup() != null){
+            Powerup currentPowerup = player.getCurrentPowerup();
+            long lastPowerupTime = player.getLastPowerupTime();
+            int powerupDuration = currentPowerup.getDuration();
+
+            if(currentPowerup != null && (System.currentTimeMillis() - lastPowerupTime) > powerupDuration){
+                player.resetPowerups();
+            }
+        }
+    }
 
     public int getCurrentLevel() { return currentLevel; }
     public void setCurrentLevel(int level) { this.currentLevel = level; }
 
-    public int getLives() { return lives; }
-    public void setLives(int lives) { this.lives = lives; }
+    public int getLives() { return player.getCurrentLives(); }
+    public void setLives(int lives) { player.setCurrentLives(lives); }
 
     public int getPlayerX() { return player.getX(); }
     public int getPlayerY() { return player.getY(); }
     public void setPlayerPosition(int x, int y) { player.setPosition(x, y); }
+
+    public void setActivePowerup(Powerup activePowerup) {
+        this.activePowerup = activePowerup;
+    }
 }
