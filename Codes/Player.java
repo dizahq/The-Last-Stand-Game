@@ -7,10 +7,7 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Set;
 
-<<<<<<< Updated upstream
-import javax.swing.ImageIcon;
-
-public class Player extends GameObject {
+public class Player extends Entity {
     private int speed = 2;
     private int maxLives = 4;
     private int currentLives;
@@ -21,6 +18,8 @@ public class Player extends GameObject {
     private Game game;
     private static final int ANIMATION_SPEED = 8;
     private Image currentImage;
+    private double remainderX = 0;
+    private double remainderY = 0;  
 
     // Attack sprites for each direction
     private Image attackUp, attackDown, attackLeft, attackRight;
@@ -32,16 +31,6 @@ public class Player extends GameObject {
     private long attackStartTime;
     private static final int ATTACK_DURATION = 120;
 
-    private int frameIndex = 0;
-    private int animationTick = 0;
-=======
-public class Player extends Entity {
-    private static final int SPEED = 2;
-    private int maxX;
-    private int maxY;
-    private Game game;
-    private static final int ANIMATION_SPEED = 3;
->>>>>>> Stashed changes
     private int fireRate = 500;
     private long lastFired;
     private boolean canFire = true;
@@ -59,30 +48,17 @@ public class Player extends Entity {
         this.currentLives = 4;
 
         if (walkDown == null){
-            walkUp = loadStrip("Entities/Player/Normal/up",                  4);
-            walkDown = loadStrip("Entities/Player/Normal/down",                 4);
-            walkLeft = loadStrip("Entities/Player/Normal/left",                 4);
-            walkRight = loadStrip("Entities/Player/Normal/right",                4);
-            walkUpRight = loadStrip("Entities/Player/Normal/upperdiagonal_right",  4);
-            walkUpLeft = loadStrip("Entities/Player/Normal/upperdiagonal_left",   4);
-            walkDownRight = loadStrip("Entities/Player/Normal/lowerdiagonal_right",  4);
-            walkDownLeft  = loadStrip("Entities/Player/Normal/lowerdiagonal_left",   4);
+            walkUp = loadStrip("Entities/Player/Normal/up",4);
+            walkDown = loadStrip("Entities/Player/Normal/down",4);
+            walkLeft = loadStrip("Entities/Player/Normal/left",4);
+            walkRight = loadStrip("Entities/Player/Normal/right",4);
+            walkUpRight = loadStrip("Entities/Player/Normal/upperdiagonal_right",4);
+            walkUpLeft = loadStrip("Entities/Player/Normal/upperdiagonal_left",4);
+            walkDownRight = loadStrip("Entities/Player/Normal/lowerdiagonal_right",4);
+            walkDownLeft  = loadStrip("Entities/Player/Normal/lowerdiagonal_left",4);
         }
 
         currentImage = walkDown[0]; // default idle frame
-
-        // Load attack effect
-        // Cardinal attack sprites
-        attackUp = new ImageIcon("Entities/Player/Attack/atk_up1.png").getImage();
-        attackDown = new ImageIcon("Entities/Player/Attack/atk_down1.png").getImage();
-        attackLeft = new ImageIcon("Entities/Player/Attack/atk_left1.png").getImage();
-        attackRight = new ImageIcon("Entities/Player/Attack/atk_right1.png").getImage();
-
-        // Diagonal attack sprites
-        attackUpRight = new ImageIcon("Entities/Player/Attack/atk_upRight1.png").getImage();
-        attackUpLeft = new ImageIcon("Entities/Player/Attack/atk_upLeft1.png").getImage();
-        attackDownRight = new ImageIcon("Entities/Player/Attack/atk_downRight1.png").getImage();
-        attackDownLeft = new ImageIcon("Entities/Player/Attack/atk_downLeft1.png").getImage();
 
     }
 
@@ -153,18 +129,23 @@ public class Player extends Entity {
 
         // 2. Normalize the vector if moving
         if (dx != 0 || dy != 0) {
-            // Calculate length: sqrt(x^2 + y^2)
             double length = Math.sqrt(dx * dx + dy * dy);
-        
-            // Divide by length to make the total magnitude 1.0, 
-            // then multiply by speed.
             dx = (dx / length) * speed;
             dy = (dy / length) * speed;
-        }   
+        }
 
-        // 3. Apply movement with bounds checking
-        this.x = (int) Math.max(0, Math.min(maxX - width, this.x + dx));
-        this.y = (int) Math.max(0, Math.min(maxY - height, this.y + dy));
+        // Accumulate remainder from previous frames
+        remainderX += dx;
+        remainderY += dy;
+
+        // Only move whole pixels, keep the leftover for next frame
+        int moveX = (int) remainderX;
+        int moveY = (int) remainderY;
+        remainderX -= moveX;
+        remainderY -= moveY;
+
+        this.x = (int) Math.max(0, Math.min(maxX - width, this.x + moveX));
+        this.y = (int) Math.max(0, Math.min(maxY - height, this.y + moveY));
 
         // 4. Collision check (Multi-axis collision logic)
         for (Obstacle obs : obstacles) {

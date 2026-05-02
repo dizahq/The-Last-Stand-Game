@@ -5,7 +5,7 @@ import java.awt.Image;
 
 import javax.swing.ImageIcon;
 
-public abstract class Entity  extends GameObject{
+public abstract class Entity extends GameObject{
 
     protected int movementSpeed;
     protected int damage;

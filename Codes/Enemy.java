@@ -5,7 +5,6 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.util.*;
-import javax.swing.ImageIcon;
 
 public class Enemy extends Entity {
 
@@ -43,16 +42,7 @@ public class Enemy extends Entity {
 
     private int panelWidth, panelHeight; //game panel bound for clamping position
 
-<<<<<<< Updated upstream
-    private Image currentImage;
-    private int panelWidth, panelHeight;
-    private int frameIndex    = 0;
-    private int animationTick = 0;
     private static final int WALK_ANIM_SPEED   = 8;         //only change for now -matt
-=======
-    //Animation speed constants (lower = faster)
-    private static final int WALK_ANIM_SPEED   = 5;
->>>>>>> Stashed changes
     private static final int ATTACK_ANIM_SPEED = 4;
     private boolean attackLanded = false; // whether the current swing has already dealt damage
 
@@ -63,15 +53,15 @@ public class Enemy extends Entity {
 
         // Load sprites only once — all Enemy instances share the same static arrays
         if (walkDown == null){
-            walkUp    = loadStrip("Entities/Enemy/up",    4);
-            walkDown  = loadStrip("Entities/Enemy/down",  4);
+            walkUp    = loadStrip("Entities/Enemy/up",4);
+            walkDown  = loadStrip("Entities/Enemy/down",4);
             walkLeft  = loadStrip("Entities/Enemy/left",  4);
             walkRight = loadStrip("Entities/Enemy/right", 4);
 
-            attackUp    = loadStrip("Entities/Enemy/attack_up",    4);
-            attackDown  = loadStrip("Entities/Enemy/attack_down",  4);
-            attackLeft  = loadStrip("Entities/Enemy/attack_left",  4);
-            attackRight = loadStrip("Entities/Enemy/attack_right", 4);
+            attackUp    = loadStrip("Entities/Enemy/attack_up",4);
+            attackDown  = loadStrip("Entities/Enemy/attack_down",4);
+            attackLeft  = loadStrip("Entities/Enemy/attack_left",4);
+            attackRight = loadStrip("Entities/Enemy/attack_right",4);
         }
 
         currentImage = walkDown[0]; // default idle frame facing down
@@ -368,7 +358,7 @@ public class Enemy extends Entity {
                 attackLanded = true;
                 strikeCount++;
                 // only deal damage on every 2nd strike
-                if (strikeCount >= 2) {
+                if (strikeCount >= 3) {
                     isDamageFrame = true;
                     strikeCount = 0; // reset for next 2-strike cycle
                 }

@@ -1,4 +1,5 @@
 package Codes;
+
 public abstract class Powerup extends GameObject {
     private int duration;
     public Powerup(int x, int y){

@@ -31,7 +31,7 @@ public class Bullet extends Entity{
         */
 
         //Maps directly to the correct image in the array (ordinal returns the enum position)
-        currentImage = bulletImages[direction.ordinal()];
+        //currentImage = bulletImages[direction.ordinal()];
     }
 
     //Moves the bullet each game tick based on its direction

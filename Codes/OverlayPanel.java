@@ -10,6 +10,7 @@ import java.awt.Color;
 public abstract class OverlayPanel extends JPanel{
     private int panelWidth, panelHeight;
     private JPanel containerPanel = new JPanel();
+    
     public OverlayPanel(int panelWidth, int panelHeight){
         this.panelWidth = panelWidth;
         this.panelHeight = panelHeight;

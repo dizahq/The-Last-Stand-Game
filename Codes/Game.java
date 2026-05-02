@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -41,9 +40,7 @@ public class Game extends JPanel implements Runnable {
     private static final int HEART_MARGIN = 16;
 
     private int currentLevel;
-
     private int panelWidth, panelHeight;
-
     private final Set<Integer> heldKeys = java.util.Collections.synchronizedSet(new HashSet<>());
 
     private MainLayeredPane rootLayeredPane;
@@ -211,18 +208,10 @@ public class Game extends JPanel implements Runnable {
         for (Enemy enemy : enemies) {
            boolean dealDamage = enemy.moveTowards(playerCX, playerCY, obstacles);
 
-<<<<<<< Updated upstream
             if (dealDamage) {
                 player.deductLife();;
                 System.out.println("[Game] Player hit! Lives: " + player.getCurrentLives());
                 if (player.getCurrentLives() <= 0) {
-=======
-            // Swing damage — fires only on attack animation frame 2 (the actual swing moment)
-            if (dealDamage && enemy.getBounds().intersects(player.getBounds())) {
-                lives--;
-                System.out.println("[Game] Player hit by swing! Lives: " + lives);
-                if (lives <= 0) {
->>>>>>> Stashed changes
                     stopGameThread();
                     SwingUtilities.invokeLater(() ->
                         rootLayeredPane.getGameOver().setVisible(true)

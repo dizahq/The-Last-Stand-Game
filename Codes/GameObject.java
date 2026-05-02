@@ -6,7 +6,8 @@ import java.awt.Rectangle;
 //It handles the common properties like position, size, and collision logic.
 abstract class GameObject {
     // Protected variables so child classes can access them directly
-    protected int x, y, width, height; 
+    protected int x, y; 
+    protected int width, height; 
 
     // Constructor to set the initial position and size of the object
     GameObject(int x, int y, int width, int height) {
