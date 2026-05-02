@@ -7,6 +7,7 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Set;
 
+<<<<<<< Updated upstream
 import javax.swing.ImageIcon;
 
 public class Player extends GameObject {
@@ -33,14 +34,22 @@ public class Player extends GameObject {
 
     private int frameIndex = 0;
     private int animationTick = 0;
+=======
+public class Player extends Entity {
+    private static final int SPEED = 2;
+    private int maxX;
+    private int maxY;
+    private Game game;
+    private static final int ANIMATION_SPEED = 3;
+>>>>>>> Stashed changes
     private int fireRate = 500;
     private long lastFired;
     private boolean canFire = true;
     private Image[] lastStrip = null;
 
     // 8 directional sprite arrays
-    private Image[] walkUp, walkDown, walkLeft, walkRight;
-    private Image[] walkUpRight, walkUpLeft, walkDownRight, walkDownLeft;
+    private static Image[] walkUp, walkDown, walkLeft, walkRight;
+    private static Image[] walkUpRight, walkUpLeft, walkDownRight, walkDownLeft;
 
     Player(int x, int y, int panelWidth, int panelHeight, Game game) {
         super(x, y, 40, 60);
@@ -49,58 +58,16 @@ public class Player extends GameObject {
         this.game = game;
         this.currentLives = 4;
 
-        // Cardinal directions
-        walkUp = new Image[]{
-            new ImageIcon("Entities/Player/Normal/up1.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/up2.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/up3.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/up4.png").getImage()
-        };
-        walkDown = new Image[]{
-            new ImageIcon("Entities/Player/Normal/down1.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/down2.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/down3.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/down4.png").getImage()
-        };
-        walkLeft = new Image[]{
-            new ImageIcon("Entities/Player/Normal/left1.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/left2.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/left3.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/left4.png").getImage()
-        };
-        walkRight = new Image[]{
-            new ImageIcon("Entities/Player/Normal/right1.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/right2.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/right3.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/right4.png").getImage()
-        };
-
-        // Diagonal directions
-        walkUpRight = new Image[]{
-            new ImageIcon("Entities/Player/Normal/upperdiagonal_right1.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/upperdiagonal_right2.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/upperdiagonal_right3.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/upperdiagonal_right4.png").getImage()
-        };
-        walkUpLeft = new Image[]{
-            new ImageIcon("Entities/Player/Normal/upperdiagonal_left1.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/upperdiagonal_left2.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/upperdiagonal_left3.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/upperdiagonal_left4.png").getImage()
-        };
-        walkDownRight = new Image[]{
-            new ImageIcon("Entities/Player/Normal/lowerdiagonal_right1.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/lowerdiagonal_right2.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/lowerdiagonal_right3.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/lowerdiagonal_right4.png").getImage()
-        };
-        
-        walkDownLeft = new Image[]{
-            new ImageIcon("Entities/Player/Normal/lowerdiagonal_left1.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/lowerdiagonal_left2.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/lowerdiagonal_left3.png").getImage(),
-            new ImageIcon("Entities/Player/Normal/lowerdiagonal_left4.png").getImage()
-        };
+        if (walkDown == null){
+            walkUp = loadStrip("Entities/Player/Normal/up",                  4);
+            walkDown = loadStrip("Entities/Player/Normal/down",                 4);
+            walkLeft = loadStrip("Entities/Player/Normal/left",                 4);
+            walkRight = loadStrip("Entities/Player/Normal/right",                4);
+            walkUpRight = loadStrip("Entities/Player/Normal/upperdiagonal_right",  4);
+            walkUpLeft = loadStrip("Entities/Player/Normal/upperdiagonal_left",   4);
+            walkDownRight = loadStrip("Entities/Player/Normal/lowerdiagonal_right",  4);
+            walkDownLeft  = loadStrip("Entities/Player/Normal/lowerdiagonal_left",   4);
+        }
 
         currentImage = walkDown[0]; // default idle frame
 

@@ -1,15 +1,40 @@
 package Codes;
 
 import java.awt.Graphics;
+import java.awt.Image;
 
-public class Bullet extends GameObject{
-    private Direction direction;
+public class Bullet extends Entity{
+    private Direction direction; //direction of where the bullet must travel
     private int speed;
+
+    //Static array for bullet images are only loaded from disk onces 
+    private static Image[] bulletImages;
+
     public Bullet(int x, int y, Direction direction){
         super(x, y, 20, 20);
         this.direction = direction;
         this.speed = -10;
+
+        /* Load images once, observes the order based on the Direction enum
+        if (bulletImages == null) {
+            bulletImages = new Image[]{
+                new ImageIcon("Entities/Bullet/bullet_north.png").getImage(),
+                new ImageIcon("Entities/Bullet/bullet_northeast.png").getImage(),
+                new ImageIcon("Entities/Bullet/bullet_east.png").getImage(),
+                new ImageIcon("Entities/Bullet/bullet_southeast.png").getImage(),
+                new ImageIcon("Entities/Bullet/bullet_south.png").getImage(),
+                new ImageIcon("Entities/Bullet/bullet_southwest.png").getImage(),
+                new ImageIcon("Entities/Bullet/bullet_west.png").getImage(),
+                new ImageIcon("Entities/Bullet/bullet_northwest.png").getImage()
+            };
+        }
+        */
+
+        //Maps directly to the correct image in the array (ordinal returns the enum position)
+        currentImage = bulletImages[direction.ordinal()];
     }
+
+    //Moves the bullet each game tick based on its direction
     public void update(){
         switch (direction) {
             case NORTH:
@@ -44,8 +69,14 @@ public class Bullet extends GameObject{
                 break;
         }
     }
+
     @Override
     public void draw(Graphics g){
-        g.fillOval(x, y, width, height);
+         // Draw sprite if loaded, otherwise fall back to a plain oval
+        if (currentImage != null && currentImage.getWidth(null) != -1){
+            g.drawImage(currentImage, x, y, width, height, null);
+        }else{
+            g.fillOval(x, y, width, height);
+        }
     }
 }

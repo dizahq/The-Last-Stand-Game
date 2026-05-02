@@ -7,91 +7,122 @@ import java.awt.Rectangle;
 import java.util.*;
 import javax.swing.ImageIcon;
 
-public class Enemy extends GameObject {
-    private static final int SPEED             = 1;
-    private static final int ATTACK_RANGE      = 55;
-    private static final int CELL              = 16;
-    private static final int PATH_REFRESH      = 60;
-    private static final int MOVE_THRESHOLD    = 45;
-    private static final int CONTACT_COOLDOWN_MAX = 90;
-    private int strikeCount = 0;
+public class Enemy extends Entity {
 
-    private int contactCooldown = 0;
-    private int lastTargetX     = -1;
-    private int lastTargetY     = -1;
-    private int stuckTimer      = 0;
-    private int lastX, lastY;
+    //Movement and behavior constants 
+    private static final int SPEED = 1; //pixels per frame
+    private static final int ATTACK_RANGE = 55; //distnace in pixels to trigger attack
+    private static final int CELL = 16; // A* grid cell size in pixels 
+    private static final int PATH_REFRESH = 60; // frames between path recalculations
+    private static final int MOVE_THRESHOLD = 45; //how far player must move to force a replan
+    private static final int CONTACT_COOLDOWN_MAX = 90; //frames before enemy can deal contact damage again
+    private int strikeCount = 0; //tracks how many swings have happened in current attack cycle
 
+    private int contactCooldown = 0; //countdown timer for contact damage cooldown
+    private int lastTargetX = -1; //last known player X for move threshold check
+    private int lastTargetY = -1; // last known player Y for move threshold check
+    private int stuckTimer = 0; //counts frames thep enemy hasn't moved
+    private int lastX, lastY; //position last frame, used for stuck detection
+
+    //Enemy behavior states
     private enum State  { WALK, ATTACK }
+    // Direction the enemy is facing, determines which sprite strip to use
     private enum Facing { UP, DOWN, LEFT, RIGHT }
 
-    private State  state  = State.WALK;
-    private State  lastState  = State.WALK;
-    private Facing facing = Facing.DOWN;
+    private State  state  = State.WALK; //current behavior state
+    private State  lastState  = State.WALK; //state from previous frame, used to detect transitions
+    private Facing facing = Facing.DOWN; //current facing direction
 
+    //A* pathfinding queue of waypoints to follow
     private final Deque<int[]> path = new ArrayDeque<>();
-    private int pathCooldown = 0;
+    private int pathCooldown = 0;//countdown before next path recalculation
+    
+    //Static sprite strips - shared across all Enemy instances (loaded once from disk)
+    private static Image[] walkUp, walkDown, walkLeft, walkRight;
+    private static Image[] attackUp, attackDown, attackLeft, attackRight;
 
-    private Image[] walkUp, walkDown, walkLeft, walkRight;
-    private Image[] attackUp, attackDown, attackLeft, attackRight;
+    private int panelWidth, panelHeight; //game panel bound for clamping position
 
+<<<<<<< Updated upstream
     private Image currentImage;
     private int panelWidth, panelHeight;
     private int frameIndex    = 0;
     private int animationTick = 0;
     private static final int WALK_ANIM_SPEED   = 8;         //only change for now -matt
+=======
+    //Animation speed constants (lower = faster)
+    private static final int WALK_ANIM_SPEED   = 5;
+>>>>>>> Stashed changes
     private static final int ATTACK_ANIM_SPEED = 4;
-    private boolean attackLanded = false;
+    private boolean attackLanded = false; // whether the current swing has already dealt damage
 
     public Enemy(int x, int y, int panelWidth, int panelHeight) {
         super(x, y, 60, 60);
         this.panelWidth  = panelWidth;
         this.panelHeight = panelHeight;
 
-        walkUp    = loadStrip("Entities/Enemy/up",    4);
-        walkDown  = loadStrip("Entities/Enemy/down",  4);
-        walkLeft  = loadStrip("Entities/Enemy/left",  4);
-        walkRight = loadStrip("Entities/Enemy/right", 4);
+        // Load sprites only once — all Enemy instances share the same static arrays
+        if (walkDown == null){
+            walkUp    = loadStrip("Entities/Enemy/up",    4);
+            walkDown  = loadStrip("Entities/Enemy/down",  4);
+            walkLeft  = loadStrip("Entities/Enemy/left",  4);
+            walkRight = loadStrip("Entities/Enemy/right", 4);
 
-        attackUp    = loadStrip("Entities/Enemy/attack_up",    4);
-        attackDown  = loadStrip("Entities/Enemy/attack_down",  4);
-        attackLeft  = loadStrip("Entities/Enemy/attack_left",  4);
-        attackRight = loadStrip("Entities/Enemy/attack_right", 4);
+            attackUp    = loadStrip("Entities/Enemy/attack_up",    4);
+            attackDown  = loadStrip("Entities/Enemy/attack_down",  4);
+            attackLeft  = loadStrip("Entities/Enemy/attack_left",  4);
+            attackRight = loadStrip("Entities/Enemy/attack_right", 4);
+        }
 
-        currentImage = walkDown[0];
+        currentImage = walkDown[0]; // default idle frame facing down
         lastX = x; lastY = y;
     }
 
-    private Image[] loadStrip(String prefix, int count) {
-        Image[] frames = new Image[count];
-        for (int i = 0; i < count; i++)
-            frames[i] = new ImageIcon(prefix + (i + 1) + ".png").getImage();
-        return frames;
+    // Returns true if enough time has passed since last contact damage
+    public boolean canContactDamage()  { 
+        return contactCooldown <= 0; 
     }
 
-    public boolean canContactDamage()  { return contactCooldown <= 0; }
-    public void resetContactCooldown() { contactCooldown = CONTACT_COOLDOWN_MAX; }
+    // Resets the cooldown timer after contact damage is dealt
+    public void resetContactCooldown() { 
+        contactCooldown = CONTACT_COOLDOWN_MAX; 
+    }
 
+    // Repositions the enemy at a random edge of the screen and resets all state
     public void respawn() {
-        int side = (int)(Math.random() * 4);
+        int side = (int)(Math.random() * 4); // pick a random screen edge
         strikeCount = 0;
 
         switch (side) {
-            case 0 -> { x = (int)(Math.random() * panelWidth);  y = 0; }
-            case 1 -> { x = (int)(Math.random() * panelWidth);  y = panelHeight - height; }
-            case 2 -> { x = 0; y = (int)(Math.random() * panelHeight); }
-            case 3 -> { x = panelWidth - width; y = (int)(Math.random() * panelHeight); }
+            case 0: //top
+                x = (int)(Math.random() * panelWidth);  
+                y = 0; 
+            break;
+            case 1: //bottom
+                x = (int)(Math.random() * panelWidth);  
+                y = panelHeight - height; 
+            break;
+            case 2: 
+                x = 0; //left
+                y = (int)(Math.random() * panelHeight); 
+            break;
+            case 3: //right
+                x = panelWidth - width; 
+                y = (int)(Math.random() * panelHeight); 
+            break;
         }
 
-        state           = State.WALK;
-        attackLanded    = false;
-        frameIndex      = 0;
-        animationTick   = 0;
+        // Reset all state to defaults
+        state = State.WALK;
+        attackLanded = false;
+        frameIndex = 0;
+        animationTick = 0;
         contactCooldown = 0;
-        lastTargetX     = -1;
-        lastTargetY     = -1;
-        stuckTimer      = 0;
-        lastX = x; lastY = y;
+        lastTargetX = -1;
+        lastTargetY = -1;
+        stuckTimer = 0;
+        lastX = x; 
+        lastY = y;
         path.clear();
         pathCooldown = 0;
     }
@@ -374,14 +405,6 @@ public class Enemy extends GameObject {
         };
     }
 
-    private void updateAnimation(Image[] frames, int speed) {
-        animationTick++;
-        if (animationTick >= speed) {
-            animationTick = 0;
-            frameIndex = (frameIndex + 1) % frames.length;
-        }
-        currentImage = frames[frameIndex];
-    }
 
     @Override
     public Rectangle getBounds() {
