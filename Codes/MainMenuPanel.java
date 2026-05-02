@@ -1,20 +1,27 @@
 package Codes;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.function.Consumer;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+//new
+import java.awt.Graphics;
+import java.awt.Image;
 
 public class MainMenuPanel extends JPanel{
     private MainLayeredPane rootLayeredPane;
     private Consumer<String> switchPanel;
     private Game game;
+
+    //new
+    private Image backgroundImage;
 
     private JLabel title = new JLabel("The Last Stand");
     private JButton newGameBtn = new JButton("New Game");
@@ -58,7 +65,8 @@ public class MainMenuPanel extends JPanel{
         add(exitBtn);
         add(Box.createVerticalGlue());
 
-        setBackground(Color.GREEN);
+        //bg not final
+        backgroundImage = new ImageIcon("Entities/Background/mainmenu.png").getImage();
         refreshButtons();
 
         addHierarchyListener(e -> {
@@ -66,6 +74,17 @@ public class MainMenuPanel extends JPanel{
                 refreshButtons();
             }
         });
+    }
+
+    //new
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        if (backgroundImage != null) {
+            // Stretch image to fill panel
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+        }
     }
 
     public void refreshButtons() {
