@@ -14,8 +14,19 @@ public class Player extends GameObject {
     private int maxX;
     private int maxY;
     private Game game;
-    private static final int ANIMATION_SPEED = 3;
+    private static final int ANIMATION_SPEED = 8;
     private Image currentImage;
+
+    // Attack sprites for each direction
+    private Image attackUp, attackDown, attackLeft, attackRight;
+    private Image attackUpRight, attackUpLeft, attackDownRight, attackDownLeft;
+
+    // The currently active attack sprite
+    private Image currentAttack;
+    private boolean showingAttack = false;
+    private long attackStartTime;
+    private static final int ATTACK_DURATION = 120;
+
     private int frameIndex = 0;
     private int animationTick = 0;
     private int fireRate = 500;
@@ -87,6 +98,20 @@ public class Player extends GameObject {
         };
 
         currentImage = walkDown[0]; // default idle frame
+
+        // Load attack effect
+        // Cardinal attack sprites
+        attackUp = new ImageIcon("Entities/Player/Attack/atk_up1.png").getImage();
+        attackDown = new ImageIcon("Entities/Player/Attack/atk_down1.png").getImage();
+        attackLeft = new ImageIcon("Entities/Player/Attack/atk_left1.png").getImage();
+        attackRight = new ImageIcon("Entities/Player/Attack/atk_right1.png").getImage();
+
+        // Diagonal attack sprites
+        attackUpRight = new ImageIcon("Entities/Player/Attack/atk_upRight1.png").getImage();
+        attackUpLeft = new ImageIcon("Entities/Player/Attack/atk_upLeft1.png").getImage();
+        attackDownRight = new ImageIcon("Entities/Player/Attack/atk_downRight1.png").getImage();
+        attackDownLeft = new ImageIcon("Entities/Player/Attack/atk_downLeft1.png").getImage();
+
     }
 
     private void updateAnimation(Image[] frames) {
@@ -111,11 +136,19 @@ public class Player extends GameObject {
     public Rectangle getBounds() {
         return new Rectangle(x + 8, y + (height - 12), width - 16, 12);
     }
-    
+
     @Override
     public void draw(Graphics g) {
-        if (currentImage != null && currentImage.getWidth(null) != -1) {
-            g.drawImage(currentImage, x, y, width, height, null);
+        Image spriteToDraw;
+
+        if (showingAttack && currentAttack != null) {
+            spriteToDraw = currentAttack;
+        } else{
+            spriteToDraw = currentImage;
+        }
+
+        if (spriteToDraw != null && spriteToDraw.getWidth(null) != -1) {
+            g.drawImage(spriteToDraw, x, y, width, height, null);
         } else {
             g.setColor(java.awt.Color.BLUE);
             g.fillRect(x, y, width, height);
@@ -125,6 +158,12 @@ public class Player extends GameObject {
     public void update(Set<Integer> heldKeys, List<Obstacle> obstacles) {
         int oldX = this.x;
         int oldY = this.y;
+
+        // Turn off attack effect after duration expires (NEW)
+        if (showingAttack &&
+            System.currentTimeMillis() - attackStartTime >= ATTACK_DURATION) {
+            showingAttack = false;
+        }
 
         // 1. Determine raw input direction
         double dx = 0;
@@ -185,19 +224,41 @@ public class Player extends GameObject {
         if(!canFire && System.currentTimeMillis() - lastFired >= fireRate){
                 canFire = true;
         }
+
+        //Shoot bullet
         if(canFire){
-            if (shootRight && shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTHWEST));
-            else if (shootLeft && shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTHEAST));
-            else if (shootRight && shootDown) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHWEST));
-            else if (shootLeft && shootDown) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHEAST));
-            else if (shootUp) game.addBullet(new Bullet(centerX, centerY, Direction.NORTH));
-            else if (shootDown) game.addBullet(new Bullet(centerX, centerY, Direction.SOUTH));
-            else if (shootRight) game.addBullet(new Bullet(centerX, centerY, Direction.WEST));
-            else if (shootLeft) game.addBullet(new Bullet(centerX, centerY, Direction.EAST));
-            else return;
-            
+            if (shootRight && shootUp) {
+                game.addBullet(new Bullet(centerX, centerY, Direction.NORTHWEST));
+                currentAttack = attackUpRight;
+            }else if (shootLeft && shootUp) {
+                game.addBullet(new Bullet(centerX, centerY, Direction.NORTHEAST));
+                currentAttack = attackUpLeft;
+            }else if (shootRight && shootDown) {
+                game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHWEST));
+                currentAttack = attackDownRight;
+            }else if (shootLeft && shootDown) {
+                game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHEAST));
+                currentAttack = attackDownLeft;
+            }else if (shootUp) {
+                game.addBullet(new Bullet(centerX, centerY, Direction.NORTH));
+                currentAttack = attackUp;
+            }else if (shootDown) {
+                game.addBullet(new Bullet(centerX, centerY, Direction.SOUTH));
+                currentAttack = attackDown;
+            }else if (shootRight) {
+                game.addBullet(new Bullet(centerX, centerY, Direction.WEST));
+                currentAttack = attackRight;
+            }else if (shootLeft) {
+                game.addBullet(new Bullet(centerX, centerY, Direction.EAST));
+                currentAttack = attackLeft;
+            }else return;
+
             lastFired = System.currentTimeMillis();
             canFire = false;
+
+            // Show attack effect
+            showingAttack = true;
+            attackStartTime = System.currentTimeMillis();
         }
     }
     
