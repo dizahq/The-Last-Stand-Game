@@ -39,7 +39,7 @@ public class Enemy extends GameObject {
     private int panelWidth, panelHeight;
     private int frameIndex    = 0;
     private int animationTick = 0;
-    private static final int WALK_ANIM_SPEED   = 5;
+    private static final int WALK_ANIM_SPEED   = 8;         //only change for now -matt
     private static final int ATTACK_ANIM_SPEED = 4;
     private boolean attackLanded = false;
 
