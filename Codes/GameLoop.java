@@ -1,58 +1,60 @@
 package Codes;
 
 import javax.swing.SwingUtilities;
-import javax.swing.JPanel;
 
-public class GameLoop extends JPanel implements Runnable {
+public class GameLoop implements Runnable {
     private final Game game;
-    private final long optimalTime;
-    
     private Thread gameThread;
     private volatile boolean running = false;
     private volatile boolean paused = false;
 
-    public GameLoop(Game game, int fps) {
+    private static final int TARGET_FPS = 60;
+    private static final long OPTIMAL_TIME = 1_000_000_000L / TARGET_FPS;
+
+    public GameLoop(Game game) {
         this.game = game;
-        this.optimalTime = 1_000_000_000L / fps;
     }
 
-    public synchronized void start() {
-        if (running) return;
+
+    //Create and start the game loop
+    public synchronized void startThread() {
+        if (gameThread != null && gameThread.isAlive()) return;
+
         running = true;
-        gameThread = new Thread(this, "GameLoopThread");
-        SwingUtilities.invokeLater(() -> game.requestFocusInWindow);
+        paused = false;
+        gameThread = new Thread(this, "GameThread");
         gameThread.start();
+        System.out.println("[Game] Game loop starts.");
     }
 
-  // Permanently stops game loop
-    public void stopGameThread() {
-        running = false;
-        paused = false;
-        if (gameThread != null) {
-            gameThread.interrupt();
-        }
-        System.out.println("[Game] Game stopped.");
+    //Pause the game loop
+    public void pauseThread(){
+        paused = true;
+        System.out.println("[Game] Game paused.");
     }
 
    // Resumes loop after pause
-    public void resumeGameThread() {
+    public void resumeThread() {
         paused = false;
-        requestFocusInWindow();
+        
         synchronized (this) {
             notifyAll();
         }
         System.out.println("[Game] Game resumes.");
     }
 
+    public void stopThread(){
+        running = false;
+        paused = false;
 
-    public void setPaused() {
-        this.paused = paused;
-        if (!paused) {
-            synchronized (this) {
-                this.notifyAll();
-            }
+        synchronized (this) {
+            notifyAll(); 
         }
+
+        if (gameThread != null) gameThread.interrupt();
+        System.out.println("[Game] Game stopped.");
     }
+
 
     @Override
     public void run() {
@@ -80,16 +82,16 @@ public class GameLoop extends JPanel implements Runnable {
             lag += elapsed;
 
             // Fixed update steps
-            while (lag >= optimalTime) {
+            while (lag >= OPTIMAL_TIME) {
                 game.update();
-                lag -= optimalTime;
+                lag -= OPTIMAL_TIME;
             }
 
             // Render
             game.repaint();
 
             // Calculate sleep to save CPU
-            long syncTime = (optimalTime - (System.nanoTime() - now)) / 1_000_000L;
+            long syncTime = (OPTIMAL_TIME - (System.nanoTime() - now)) / 1_000_000L;
             if (syncTime > 0) {
                 try {
                     Thread.sleep(syncTime);

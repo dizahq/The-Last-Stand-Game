@@ -59,7 +59,6 @@ public class Player extends Entity {
         }
 
         currentImage = walkDown[0]; // default idle frame
-
     }
 
     private void updateAnimation(Image[] frames) {
@@ -108,8 +107,7 @@ public class Player extends Entity {
         int oldY = this.y;
 
         // Turn off attack effect after duration expires (NEW)
-        if (showingAttack &&
-            System.currentTimeMillis() - attackStartTime >= ATTACK_DURATION) {
+        if (showingAttack && System.currentTimeMillis() - attackStartTime >= ATTACK_DURATION) {
             showingAttack = false;
         }
 

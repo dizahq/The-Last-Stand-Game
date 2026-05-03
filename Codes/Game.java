@@ -17,16 +17,9 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-public class Game extends JPanel implements Runnable {
-    private Thread gameThread;
-    private volatile boolean running = false;
-    private volatile boolean paused = false;
-
-    // 60 frames per sec
-    private static final int TARGET_FPS = 60;
-    private static final long OPTIMAL_TIME = 1_000_000_000L / TARGET_FPS;
-
+public class Game extends JPanel {
     private Player player;
+    private GameLoop gameLoop;
     private List<Obstacle> obstacles = new CopyOnWriteArrayList<>();
     private List<Enemy> enemies = new CopyOnWriteArrayList<>();
     private List<Bullet> bullets = new CopyOnWriteArrayList<>();
@@ -59,6 +52,10 @@ public class Game extends JPanel implements Runnable {
         this.panelHeight = panelHeight;
 
         setLayout(null);
+        setFocusable(true);
+
+        //Game Loop
+        gameLoop = new GameLoop (this);
 
         // Load assets (bg + lives)
         grassImage = new ImageIcon("Entities/Background/grass.png").getImage();
@@ -71,7 +68,7 @@ public class Game extends JPanel implements Runnable {
         pauseBtn.setBounds(panelWidth - 125, 20, 100, 40);
         pauseBtn.setFocusable(false);
         pauseBtn.addActionListener(e -> {
-            pauseGameThread();
+            gameLoop.pauseThread();
             rootLayeredPane.getPauseMenu().setVisible(true);
         });
         add(pauseBtn);
@@ -81,7 +78,7 @@ public class Game extends JPanel implements Runnable {
         testGameOverBtn.setBounds(panelWidth - 125, 70, 100, 40);
         testGameOverBtn.setFocusable(false);
         testGameOverBtn.addActionListener(e -> {
-            stopGameThread();
+            gameLoop.stopThread();
             SwingUtilities.invokeLater(() -> rootLayeredPane.getGameOver().setVisible(true));
         });
         add(testGameOverBtn);
@@ -106,99 +103,9 @@ public class Game extends JPanel implements Runnable {
         });
     }
 
-    // Creates & starts game thread
-    public void startGameThread() {
-        if (gameThread != null && gameThread.isAlive()) return;
 
-        running = true;
-        paused = false;
-        gameThread = new Thread(this, "GameThread");
-        gameThread.setDaemon(true);
-        gameThread.start();
 
-        SwingUtilities.invokeLater(()-> {
-            requestFocusInWindow();
-        });
-
-        System.out.println("[Game] Game loop starts.");
-    }
-
-    // Pause loop
-    public void pauseGameThread() {
-        paused = true;
-        System.out.println("[Game] Game paused.");
-    }
-
-    // Resumes loop after pause
-    public void resumeGameThread() {
-        paused = false;
-        requestFocusInWindow();
-        synchronized (this) {
-            notifyAll();
-        }
-        System.out.println("[Game] Game resumes.");
-    }
-
-    // Permanently stops game loop
-    public void stopGameThread() {
-        running = false;
-        paused = false;
-        if (gameThread != null) {
-            gameThread.interrupt();
-        }
-        System.out.println("[Game] Game stopped.");
-    }
-
-    // Game loop
-    @Override
-    public void run() {
-        long lastTime = System.nanoTime();
-        long lag = 0L;
-
-        while (running) {
-            // Pause handling
-            if (paused) {
-                synchronized (this) {
-                    while (paused && running) {
-                        try {
-                            wait();
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            return;
-                        }
-                    }
-                }
-                lastTime = System.nanoTime();
-                lag = 0L;
-            }
-
-            long now = System.nanoTime();
-            long elapsed = now - lastTime;
-            lastTime = now;
-            lag += elapsed;
-
-            while (lag >= OPTIMAL_TIME) {
-                update();
-                lag -= OPTIMAL_TIME;
-            }
-
-            // Render
-            repaint();
-
-            // Sleep for remaining time in frame
-            long sleepMillis = (OPTIMAL_TIME - (System.nanoTime() - now)) / 1_000_000L;
-            if (sleepMillis > 0) {
-                try {
-                    Thread.sleep(sleepMillis);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-            }
-        }
-    }
-
-    private void update() {
+    public void update() {
         player.update(heldKeys, obstacles, activePowerup);
 
         int playerCX = player.getX() + 30;
@@ -212,7 +119,7 @@ public class Game extends JPanel implements Runnable {
                 player.deductLife();;
                 System.out.println("[Game] Player hit! Lives: " + player.getCurrentLives());
                 if (player.getCurrentLives() <= 0) {
-                    stopGameThread();
+                    gameLoop.stopThread();
                     SwingUtilities.invokeLater(() ->
                         rootLayeredPane.getGameOver().setVisible(true)
                     );
@@ -349,6 +256,7 @@ public class Game extends JPanel implements Runnable {
         enemies.clear();
         heldKeys.clear();
         initializeWave(currentLevel);
+        gameLoop.startThread();
         SwingUtilities.invokeLater(()-> requestFocusInWindow());
         System.out.println("[Game] Game reset.");
     }
@@ -391,6 +299,12 @@ public class Game extends JPanel implements Runnable {
     public int getPlayerX() { return player.getX(); }
     public int getPlayerY() { return player.getY(); }
     public void setPlayerPosition(int x, int y) { player.setPosition(x, y); }
+
+    public void startGameThread() { gameLoop.startThread(); }
+    public void pauseGameThread() { gameLoop.pauseThread(); }
+    public void resumeGameThread() { gameLoop.resumeThread(); }
+    public void stopGameThread() { gameLoop.stopThread(); }
+
 
     public void setActivePowerup(Powerup activePowerup) {
         this.activePowerup = activePowerup;
