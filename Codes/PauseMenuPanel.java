@@ -51,7 +51,13 @@ public class PauseMenuPanel extends OverlayPanel{
 
     public void backToMainMenu(){
         // Savee game progress
-        SaveData data = new SaveData(game.getCurrentLevel(), game.getLives(), game.getPlayerX(), game.getPlayerY());
+        SaveData data = new SaveData(
+            game.getCurrentLevel(), 
+            game.getCurrentWave(),
+            game.getLives(), 
+            game.getPlayerX(), 
+            game.getPlayerY()
+        );
         boolean saved = SaveManager.save(data);
         if (!saved) {
             System.err.println("[PauseMenuPanel] Warning: progress can't be saved.");
@@ -63,7 +69,13 @@ public class PauseMenuPanel extends OverlayPanel{
     }
 
     public void exitGame() {
-        SaveData data = new SaveData(game.getCurrentLevel(), game.getLives(), game.getPlayerX(), game.getPlayerY());
+        SaveData data = new SaveData(
+            game.getCurrentLevel(), 
+            game.getCurrentWave(),
+            game.getLives(), 
+            game.getPlayerX(), 
+            game.getPlayerY()
+        );
         SaveManager.save(data);
 
         game.stopGameThread();

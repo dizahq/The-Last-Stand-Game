@@ -1,6 +1,7 @@
 package Codes;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.HierarchyEvent;
@@ -45,6 +46,13 @@ public class Game extends JPanel {
     private int spawnRate = 5000;
     private int currentRespawn = 0;
     private int respawns = 3;
+
+    // wave display
+    private int currentWave = 0;
+    
+    private static final long WAVE_BANNER_DURATION = 2500;
+    private long waveBannerStartTime = 0;
+    private boolean showWaveBanner = false;
 
     public Game(int panelWidth, int panelHeight, MainLayeredPane rootLayeredPane) {
         this.rootLayeredPane = rootLayeredPane;
@@ -93,8 +101,6 @@ public class Game extends JPanel {
             }
         });
     }
-
-
 
     public void update() {
         player.update(heldKeys, obstacles, activePowerup);
@@ -173,6 +179,9 @@ public class Game extends JPanel {
         if (!bulletsToRemove.isEmpty()) {
             System.out.println("[Game] Bullets remaining: " + bullets.size());
         }
+        if(!enemiesToRemove.isEmpty()) {
+            System.out.println("[Game] Enemies remaining: " + enemies.size());
+        }
 
         // --- Enemy respawn waves ---
         while (currentRespawn < respawns) {
@@ -216,6 +225,52 @@ public class Game extends JPanel {
             player.draw(g); // draw player on top
             drawLivesHUD(g, player);
         }
+
+        // Wave display
+        drawWaveHUD(g);
+
+        // Temp banner (Fades after 2.5s)
+        if (showWaveBanner) {
+            long elapsed = System.currentTimeMillis() - waveBannerStartTime;
+            if (elapsed < WAVE_BANNER_DURATION) {
+                drawWaveBanner(g, elapsed);
+            } else {
+                showWaveBanner = false; 
+            }
+        }
+    }
+
+    // Wave display counter
+    private void drawWaveHUD(Graphics g) {
+        String text = "Wave " + currentWave;
+
+        g.setFont(new Font("Arial", Font.BOLD, 22));
+
+        int textWidth = g.getFontMetrics().stringWidth(text);
+        int x = (panelWidth - textWidth) / 2;
+        int y = 40;
+
+        g.setColor(Color.WHITE);
+        g.drawString(text, x, y);
+    }
+
+    // Wave display when new wave starts
+    private void drawWaveBanner (Graphics g, long elapsed) { 
+        // fades from 255 -> 0 over last 500ms duration
+        float fadeStart = WAVE_BANNER_DURATION - 500f;
+        int alpha = (elapsed > fadeStart) ? (int) (255 * (1f - (elapsed - fadeStart) / 500f)) : 255;
+        alpha = Math.max(0, Math.min(255, alpha));
+
+        String text = "Wave " + currentWave;
+        g.setFont(new Font("Arial", Font.BOLD, 60));
+
+        int textWidth = g.getFontMetrics().stringWidth(text);
+        int x = (panelWidth - textWidth) / 2;
+        int y = panelHeight / 2;
+
+        g.setColor(new Color(255, 255, 255, alpha));
+        g.drawString(text, x, y);
+
     }
 
     public void initializeWave(int currentLevel) {
@@ -224,6 +279,13 @@ public class Game extends JPanel {
         bullets.clear(); // clear leftover bullets
         currentRespawn = 0;
         spawnCount = ((currentLevel * currentLevel) + 20) / 3;
+
+        // Increment wave 
+        currentWave++;
+        showWaveBanner = true;
+        waveBannerStartTime = System.currentTimeMillis();
+        System.out.println("[Game] Wave " + currentWave + " started.");
+
         spawnEnemies(spawnCount);
     }
 
@@ -243,6 +305,7 @@ public class Game extends JPanel {
 
     public void resetGame() {
         currentLevel = 0;
+        currentWave = 0;
         bullets.clear();
         enemies.clear();
         heldKeys.clear();
@@ -284,6 +347,11 @@ public class Game extends JPanel {
     public int getCurrentLevel() { return currentLevel; }
     public void setCurrentLevel(int level) { this.currentLevel = level; }
 
+    public int getCurrentWave() { return currentWave; }
+    public void setCurrentWave(int wave) {
+        this.currentWave = wave;
+    }
+    
     public int getLives() { return player.getCurrentLives(); }
     public void setLives(int lives) { player.setCurrentLives(lives); }
 
