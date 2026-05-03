@@ -73,15 +73,6 @@ public class Game extends JPanel {
         });
         add(pauseBtn);
 
-        // TEMP: Game over test button - will remove once everything's set
-        JButton testGameOverBtn = new JButton("Test Game Over");
-        testGameOverBtn.setBounds(panelWidth - 125, 70, 100, 40);
-        testGameOverBtn.setFocusable(false);
-        testGameOverBtn.addActionListener(e -> {
-            gameLoop.stopThread();
-            SwingUtilities.invokeLater(() -> rootLayeredPane.getGameOver().setVisible(true));
-        });
-        add(testGameOverBtn);
 
         // Key listeners
         addKeyListener(new KeyAdapter() {
