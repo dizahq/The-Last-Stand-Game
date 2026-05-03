@@ -42,26 +42,26 @@ public class Enemy extends Entity {
 
     private int panelWidth, panelHeight; //game panel bound for clamping position
 
-    private static final int WALK_ANIM_SPEED   = 8;         //only change for now -matt
-    private static final int ATTACK_ANIM_SPEED = 4;
+    private static final int WALK_ANIM_SPEED   = 5;
+    private static final int ATTACK_ANIM_SPEED = 8;
     private boolean attackLanded = false; // whether the current swing has already dealt damage
 
     public Enemy(int x, int y, int panelWidth, int panelHeight) {
-        super(x, y, 60, 60);
+        super(x, y, 80, 80);
         this.panelWidth  = panelWidth;
         this.panelHeight = panelHeight;
 
         // Load sprites only once — all Enemy instances share the same static arrays
         if (walkDown == null){
-            walkUp    = loadStrip("Entities/Enemy/up",4);
-            walkDown  = loadStrip("Entities/Enemy/down",4);
-            walkLeft  = loadStrip("Entities/Enemy/left",  4);
-            walkRight = loadStrip("Entities/Enemy/right", 4);
+            walkUp    = loadStrip("Entities/Enemy/Walk/up",8);
+            walkDown  = loadStrip("Entities/Enemy/Walk/down",8);
+            walkLeft  = loadStrip("Entities/Enemy/Walk/left",  8);
+            walkRight = loadStrip("Entities/Enemy/Walk/right", 8);
 
-            attackUp    = loadStrip("Entities/Enemy/attack_up",4);
-            attackDown  = loadStrip("Entities/Enemy/attack_down",4);
-            attackLeft  = loadStrip("Entities/Enemy/attack_left",4);
-            attackRight = loadStrip("Entities/Enemy/attack_right",4);
+            attackUp    = loadStrip("Entities/Enemy/Attack/attack_up",6);
+            attackDown  = loadStrip("Entities/Enemy/Attack/attack_down",6);
+            attackLeft  = loadStrip("Entities/Enemy/Attack/attack_left",6);
+            attackRight = loadStrip("Entities/Enemy/Attack/attack_right",6);
         }
 
         currentImage = walkDown[0]; // default idle frame facing down
