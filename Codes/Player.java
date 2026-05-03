@@ -7,6 +7,8 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.ImageIcon;
+
 public class Player extends Entity {
     private int speed = 2;
     private int maxLives = 4;
@@ -59,6 +61,19 @@ public class Player extends Entity {
         }
 
         currentImage = walkDown[0]; // default idle frame
+
+        // Load attack effect
+        // Cardinal attack sprites
+        attackUp = new ImageIcon("Entities/Player/Attack/atk_up1.png").getImage();
+        attackDown = new ImageIcon("Entities/Player/Attack/atk_down1.png").getImage();
+        attackLeft = new ImageIcon("Entities/Player/Attack/atk_left1.png").getImage();
+        attackRight = new ImageIcon("Entities/Player/Attack/atk_right1.png").getImage();
+
+        // Diagonal attack sprites
+        attackUpRight = new ImageIcon("Entities/Player/Attack/atk_upRight1.png").getImage();
+        attackUpLeft = new ImageIcon("Entities/Player/Attack/atk_upLeft1.png").getImage();
+        attackDownRight = new ImageIcon("Entities/Player/Attack/atk_downRight1.png").getImage();
+        attackDownLeft = new ImageIcon("Entities/Player/Attack/atk_downLeft1.png").getImage();
     }
 
     private void updateAnimation(Image[] frames) {
@@ -186,16 +201,16 @@ public class Player extends Entity {
         //Shoot bullet
         if(canFire){
             if (shootRight && shootUp) {
-                game.addBullet(new Bullet(centerX, centerY, Direction.NORTHWEST));
+                game.addBullet(new Bullet(centerX, centerY, Direction.NORTHEAST));
                 currentAttack = attackUpRight;
             }else if (shootLeft && shootUp) {
-                game.addBullet(new Bullet(centerX, centerY, Direction.NORTHEAST));
+                game.addBullet(new Bullet(centerX, centerY, Direction.NORTHWEST));
                 currentAttack = attackUpLeft;
             }else if (shootRight && shootDown) {
-                game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHWEST));
+                game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHEAST));
                 currentAttack = attackDownRight;
             }else if (shootLeft && shootDown) {
-                game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHEAST));
+                game.addBullet(new Bullet(centerX, centerY, Direction.SOUTHWEST));
                 currentAttack = attackDownLeft;
             }else if (shootUp) {
                 game.addBullet(new Bullet(centerX, centerY, Direction.NORTH));
@@ -204,10 +219,10 @@ public class Player extends Entity {
                 game.addBullet(new Bullet(centerX, centerY, Direction.SOUTH));
                 currentAttack = attackDown;
             }else if (shootRight) {
-                game.addBullet(new Bullet(centerX, centerY, Direction.WEST));
+                game.addBullet(new Bullet(centerX, centerY, Direction.EAST));
                 currentAttack = attackRight;
             }else if (shootLeft) {
-                game.addBullet(new Bullet(centerX, centerY, Direction.EAST));
+                game.addBullet(new Bullet(centerX, centerY, Direction.WEST));
                 currentAttack = attackLeft;
             }else return;
 
