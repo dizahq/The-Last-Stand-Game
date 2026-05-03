@@ -19,7 +19,6 @@ public class Player extends Entity {
     private int maxY;
     private Game game;
     private static final int ANIMATION_SPEED = 8;
-    private Image currentImage;
     private double remainderX = 0;
     private double remainderY = 0;  
 

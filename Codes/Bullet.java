@@ -8,6 +8,7 @@ import javax.swing.ImageIcon;
 public class Bullet extends Entity{
     private Direction direction; //direction of where the bullet must travel
     private int speed;
+    private int diagonal;
 
     //Static array for bullet images are only loaded from disk onces 
     private static Image[] bulletImages;
@@ -16,6 +17,7 @@ public class Bullet extends Entity{
         super(x, y, 35, 35);
         this.direction = direction;
         this.speed = 10;
+        this.diagonal = (int) (speed / Math.sqrt(2));
 
         // Load images once, observes the order based on the Direction enum
         if (bulletImages == null) {
@@ -31,7 +33,6 @@ public class Bullet extends Entity{
             };
         }
 
-        //Maps directly to the correct image in the array (ordinal returns the enum position)
         currentImage = bulletImages[direction.ordinal()];
     }
 
@@ -42,32 +43,32 @@ public class Bullet extends Entity{
                 this.y -= speed;
                 break;
             case NORTHEAST:
-                this.x += speed;
-                this.y -= speed;
+                this.x += diagonal;
+                this.y -= diagonal;
                 break;
             case EAST:
                 this.x += speed;
                 break;
             case SOUTHEAST:
-                this.x += speed;
-                this.y += speed;
+                this.x += diagonal;
+                this.y += diagonal;
                 break;
             case SOUTH:
                 this.y += speed;
                 break;
             case SOUTHWEST:
-                this.x -= speed;
-                this.y += speed;
+                this.x -= diagonal;
+                this.y += diagonal;
                 break;
             case WEST:
                 this.x -= speed;
                 break;
             case NORTHWEST:
-                this.x -= speed;
-                this.y -= speed;
+                this.x -= diagonal;
+                this.y -= diagonal;
                 break;
             default:
-                break;
+            break;
         }
     }
 

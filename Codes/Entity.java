@@ -20,7 +20,7 @@ public abstract class Entity extends GameObject{
     }
 
     //Avoids manual loading ot sprites to the memory
-    protected Image[] loadStrip(String prefix, int count){
+    protected static synchronized Image[] loadStrip(String prefix, int count){
         Image[] frames = new Image[count];
 
         for (int i = 0; i< count; i++){
@@ -30,8 +30,9 @@ public abstract class Entity extends GameObject{
     }
 
     protected void updateAnimation(Image[] frames, int speed){
+        if (frames == null || frames.length == 0) return; // ADD
+        
         animationTick++;
-
         if (animationTick >= speed){
             animationTick = 0;
             frameIndex = (frameIndex + 1) % frames.length;
