@@ -6,15 +6,15 @@ import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Set;
-
+import java.util.Map;
+import java.util.HashMap;
 import javax.swing.ImageIcon;
 
 public class Player extends Entity {
     private int speed = 2;
     private int maxLives = 4;
     private int currentLives;
-    private Powerup currentPowerup = null;
-    private long lastPowerupTime;
+    private Map<Powerup, Long> currentPowerups = new HashMap<>();
     private int maxX;
     private int maxY;
     private Game game;
@@ -170,9 +170,8 @@ public class Player extends Entity {
         
         if (powerup != null && getBounds().intersects(powerup.getBounds())){
             powerup.applyEffect(this);
-            this.currentPowerup = powerup;
+            currentPowerups.put(powerup, System.currentTimeMillis());
             game.setActivePowerup(null);
-            lastPowerupTime = System.currentTimeMillis();
         }
 
         // 5. 8-directional animation logic (Keep your original logic here)
@@ -246,8 +245,7 @@ public class Player extends Entity {
     public int getY() { return y; }
     public int getMaxLives() { return maxLives; }
     public int getCurrentLives() { return currentLives; }
-    public Powerup getCurrentPowerup() { return currentPowerup; }
-    public long getLastPowerupTime() { return lastPowerupTime; }
+    public Map<Powerup, Long> getCurrentPowerups() { return currentPowerups; }
 
     public void setPosition(int x, int y) {
         this.x = x;
@@ -264,11 +262,5 @@ public class Player extends Entity {
 
     public void setSpeed(int speed) {
         this.speed = speed;
-    }
-
-    public void resetPowerups(){
-        currentPowerup = null;
-        this.speed = 2;
-        this.fireRate = 500;
     }
 }

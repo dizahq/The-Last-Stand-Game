@@ -2,6 +2,8 @@ package Codes;
 
 import java.awt.Graphics;
 import java.awt.Image;
+import java.util.List;
+import java.util.Random;
 
 import javax.swing.ImageIcon;
 
@@ -37,7 +39,7 @@ public class Bullet extends Entity{
     }
 
     //Moves the bullet each game tick based on its direction
-    public void update(){
+    public void update(List<Enemy> enemies, List<Bullet> bulletsToRemove, List<Enemy> enemiesToRemove, Powerup activePowerup, Game game){
         switch (direction) {
             case NORTH:
                 this.y -= speed;
@@ -70,6 +72,36 @@ public class Bullet extends Entity{
             default:
             break;
         }
+
+        // Bullet vs enemy collision
+            for (Enemy enemy : enemies) {
+                if (!enemiesToRemove.contains(enemy) && this.getBounds().intersects(enemy.getBounds())) {
+                    bulletsToRemove.add(this);
+                    enemiesToRemove.add(enemy);
+                    System.out.println("[Game] Enemy hit by bullet!");
+                    // Powerup drop
+                    Random dropChance = new Random();
+                    if(dropChance.nextInt(10) == 0 && activePowerup == null){
+                        Random powerupType = new Random();
+                        int powerup = powerupType.nextInt(3)+1;
+                        switch (powerup) {
+                            case 1:
+                                game.setActivePowerup(new FireRatePowerup(enemy.getX(), enemy.getY()));
+                                break;
+                            case 2:
+                                game.setActivePowerup(new MovementSpeedPowerup(enemy.getX(), enemy.getY()));
+                                break;
+                            case 3:
+                                game.setActivePowerup(new HealPowerUp(enemy.getX(), enemy.getY()));
+                                break;
+                        
+                            default:
+                                break;
+                        }
+                    }
+                    break;
+                }
+            }
     }
 
     @Override

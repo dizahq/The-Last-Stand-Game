@@ -1,7 +1,5 @@
 package Codes;
 
-import javax.swing.SwingUtilities;
-
 public class GameLoop implements Runnable {
     private final Game game;
     private Thread gameThread;

@@ -10,13 +10,13 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import java.util.Map;
 
 public class Game extends JPanel {
     private Player player;
@@ -72,7 +72,7 @@ public class Game extends JPanel {
         lifeFullImage = new ImageIcon("Entities/UserInterface/life_Full.png").getImage();
         lifeEmptyImage = new ImageIcon("Entities/UserInterface/life_Empty.png").getImage();
 
-        initializeWave(currentLevel);
+        initializeWave(currentLevel, null);
 
         // Pause button
         pauseBtn.setBounds(panelWidth - 125, 20, 100, 40);
@@ -133,7 +133,7 @@ public class Game extends JPanel {
         List<Enemy> enemiesToRemove = new ArrayList<>();
 
         for (Bullet bullet : bullets) {
-            bullet.update();
+            bullet.update(enemies, bulletsToRemove, enemiesToRemove, activePowerup, this);
 
             // Remove bullet if off-screen
             if (bullet.getX() < 0 || bullet.getX() > panelWidth ||
@@ -141,36 +141,6 @@ public class Game extends JPanel {
                 bulletsToRemove.add(bullet);
                 System.out.println("[Game] Bullet removed (off-screen). Remaining: " + (bullets.size() - bulletsToRemove.size()));
                 continue;
-            }
-
-            // Bullet vs enemy collision
-            for (Enemy enemy : enemies) {
-                if (!enemiesToRemove.contains(enemy) && bullet.getBounds().intersects(enemy.getBounds())) {
-                    bulletsToRemove.add(bullet);
-                    enemiesToRemove.add(enemy);
-                    System.out.println("[Game] Enemy hit by bullet!");
-                    // Powerup drop
-                    Random dropChance = new Random();
-                    if(dropChance.nextInt(10) == 0 && activePowerup == null){
-                        Random powerupType = new Random();
-                        int powerup = powerupType.nextInt(3)+1;
-                        switch (powerup) {
-                            case 1:
-                                activePowerup = new FireRatePowerup(enemy.getX(), enemy.getY());
-                                break;
-                            case 2:
-                                activePowerup = new MovementSpeedPowerup(enemy.getX(), enemy.getY());
-                                break;
-                            case 3:
-                                activePowerup = new HealPowerUp(enemy.getX(), enemy.getY());
-                                break;
-                        
-                            default:
-                                break;
-                        }
-                    }
-                    break;
-                }
             }
         }
 
@@ -198,7 +168,7 @@ public class Game extends JPanel {
         if (currentRespawn == respawns && enemies.isEmpty()) {
             currentLevel++;
             System.out.println("[Game] Level Up! Current Level: " + currentLevel);
-            initializeWave(currentLevel);
+            initializeWave(currentLevel, this.player);
         }
 
         checkPowerup(player);
@@ -287,8 +257,12 @@ public class Game extends JPanel {
 
     }
 
-    public void initializeWave(int currentLevel) {
-        player = new Player(panelWidth / 2, panelHeight / 2, panelWidth, panelHeight, this);
+    public void initializeWave(int currentLevel, Player player) {
+        if(player != null){
+            this.player = player;
+        }else{
+            this.player = new Player(panelWidth / 2, panelHeight / 2, panelWidth, panelHeight, this);
+        }
         enemies.clear(); // clear leftover enemies from previous wave
         bullets.clear(); // clear leftover bullets
         currentRespawn = 0;
@@ -323,7 +297,7 @@ public class Game extends JPanel {
         bullets.clear();
         enemies.clear();
         heldKeys.clear();
-        initializeWave(currentLevel);
+        initializeWave(currentLevel, null);
         gameLoop.startThread();
         SwingUtilities.invokeLater(()-> requestFocusInWindow());
         System.out.println("[Game] Game reset.");
@@ -347,14 +321,17 @@ public class Game extends JPanel {
     }
     // Check if powerup is past its duration
     private void checkPowerup(Player player){
-        if(player.getCurrentPowerup() != null){
-            Powerup currentPowerup = player.getCurrentPowerup();
-            long lastPowerupTime = player.getLastPowerupTime();
-            int powerupDuration = currentPowerup.getDuration();
-
-            if(currentPowerup != null && (System.currentTimeMillis() - lastPowerupTime) > powerupDuration){
-                player.resetPowerups();
-            }
+        Map<Powerup, Long> currentPowerups = player.getCurrentPowerups();
+        if(currentPowerups != null){
+            currentPowerups.entrySet().removeIf(powerup -> {
+                if ((System.currentTimeMillis() - powerup.getValue()) > powerup.getKey().getDuration()) {
+                    Powerup p = powerup.getKey();
+                    if (p instanceof FireRatePowerup) player.setFireRate(500);
+                    else if (p instanceof MovementSpeedPowerup) player.setSpeed(2);
+                    return true;
+                }
+                return false;
+            });
         }
     }
 
