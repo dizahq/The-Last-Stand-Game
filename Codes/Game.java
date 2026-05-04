@@ -290,6 +290,7 @@ public class Game extends JPanel {
         bullets.clear(); // clear leftover bullets
         currentRespawn = 0;
         spawnCount = ((currentLevel * currentLevel) - (currentLevel * 2) + 20) / respawns;
+        spawnRate = spawnRate + (int)(currentLevel * 250);
 
         // Increment wave 
         currentWave++;
@@ -341,6 +342,7 @@ public class Game extends JPanel {
     public void resetGame() {
         currentLevel = 0;
         currentWave = 0;
+        spawnRate = 5000;
         bullets.clear();
         enemies.clear();
         bossEnemy = null;
