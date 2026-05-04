@@ -11,7 +11,7 @@ import java.util.HashMap;
 import javax.swing.ImageIcon;
 
 public class Player extends Entity {
-    private int speed = 2;
+    private int speed = 3;
     private int maxLives = 4;
     private int currentLives;
     private Map<Powerup, Long> currentPowerups = new HashMap<>();

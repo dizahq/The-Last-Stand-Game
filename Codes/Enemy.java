@@ -43,7 +43,7 @@ public abstract class Enemy extends Entity {
     private static Image[] walkUp, walkDown, walkLeft, walkRight;
     private static Image[] attackUp, attackDown, attackLeft, attackRight;
 
-    private int panelWidth, panelHeight; //game panel bound for clamping position
+    protected int panelWidth, panelHeight; //game panel bound for clamping position
 
     private static final int WALK_ANIM_SPEED   = 5;
     private static final int ATTACK_ANIM_SPEED = 10;

@@ -81,6 +81,9 @@ public class Bullet extends Entity{
                 bulletsToRemove.add(this);
                 if(enemy.getHealth() == 0){
                     enemiesToRemove.add(enemy);
+                    if(enemy instanceof BossEnemy){
+                        game.killBoss();
+                    }
                 }
                 System.out.println("[Game] Enemy hit by bullet!");
                 // Powerup drop

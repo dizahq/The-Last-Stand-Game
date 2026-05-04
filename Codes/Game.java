@@ -34,6 +34,9 @@ public class Game extends JPanel {
     private static final int HEART_SIZE = 60;
     private static final int HEART_PADDING = 16;
     private static final int HEART_MARGIN = 16;
+    
+    private static final int BAR_WIDTH = 750;
+    private static final int BAR_HEIGHT = 75;
 
     private int currentLevel;
     private int panelWidth, panelHeight;
@@ -55,6 +58,8 @@ public class Game extends JPanel {
     private static final long WAVE_BANNER_DURATION = 2500;
     private long waveBannerStartTime = 0;
     private boolean showWaveBanner = false;
+
+    private BossEnemy bossEnemy;
 
     public Game(int panelWidth, int panelHeight, MainLayeredPane rootLayeredPane) {
         this.rootLayeredPane = rootLayeredPane;
@@ -159,7 +164,7 @@ public class Game extends JPanel {
         // --- Enemy respawn waves ---
         while (currentRespawn < respawns) {
             if (System.currentTimeMillis() - lastEnemySpawnTime > spawnRate) {
-                spawnEnemies(currentLevel, spawnCount);
+                spawnEnemies(spawnCount);
             } else {
                 break;
             }
@@ -173,6 +178,11 @@ public class Game extends JPanel {
         }
 
         checkPowerup(player);
+        
+        if(bossEnemy != null){
+            List<Enemy> newEnemies = bossEnemy.spawnEnemies();
+            enemies.addAll(newEnemies);
+        }
     }
 
     @Override
@@ -213,6 +223,10 @@ public class Game extends JPanel {
 
         // Wave display
         drawWaveHUD(g);
+
+        if(bossEnemy != null){
+            drawHealthBar(g, bossEnemy);
+        }
 
         // Temp banner (Fades after 2.5s)
         if (showWaveBanner) {
@@ -257,6 +271,14 @@ public class Game extends JPanel {
         g.drawString(text, x, y);
 
     }
+    
+    public void drawHealthBar(Graphics g, BossEnemy bossEnemy){
+        int currentHealthWidth = (int)(BAR_WIDTH * ((double)bossEnemy.getHealth()/bossEnemy.getMaxHealth()));
+        g.setColor(Color.BLACK);
+        g.fillRect(panelWidth/2 - BAR_WIDTH/2, (int)(panelHeight-BAR_HEIGHT*1.5), BAR_WIDTH, BAR_HEIGHT);
+        g.setColor(Color.RED);
+        g.fillRect(panelWidth/2 - BAR_WIDTH/2, (int)(panelHeight-BAR_HEIGHT*1.5), currentHealthWidth, BAR_HEIGHT);
+    }
 
     public void initializeWave(int currentLevel, Player player) {
         if(player != null){
@@ -275,12 +297,18 @@ public class Game extends JPanel {
         waveBannerStartTime = System.currentTimeMillis();
         System.out.println("[Game] Wave " + currentWave + " started.");
 
-        spawnEnemies(currentLevel, spawnCount);
+        spawnEnemies(spawnCount);
     }
 
-    public void spawnEnemies(int currentLevel, int enemyCount) {
+    public void spawnEnemies(int enemyCount) {
         int specialEnemySpawnChance = currentLevel * 5;
         Random specialEnemyRandom = new Random();
+
+        if(currentLevel == 9 && currentRespawn == 2){
+            bossEnemy = new BossEnemy(panelWidth, panelHeight);
+            enemies.add(bossEnemy);
+        }
+
         for (int i = 0; i < enemyCount; i++) {
             Enemy enemy;
             if(specialEnemyRandom.nextInt(100)+1 <= specialEnemySpawnChance){
@@ -315,6 +343,7 @@ public class Game extends JPanel {
         currentWave = 0;
         bullets.clear();
         enemies.clear();
+        bossEnemy = null;
         heldKeys.clear();
         initializeWave(currentLevel, null);
         gameLoop.startThread();
@@ -377,5 +406,9 @@ public class Game extends JPanel {
 
     public void setActivePowerup(Powerup activePowerup) {
         this.activePowerup = activePowerup;
+    }
+
+    public void killBoss(){
+        this.bossEnemy = null;
     }
 }
