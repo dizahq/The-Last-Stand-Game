@@ -27,6 +27,7 @@ public class Game extends JPanel {
     private Powerup activePowerup = null;
 
     private Image grassImage;
+    private Image grassOverlay; //overlay, test (NEW)
     private Image lifeFullImage;
     private Image lifeEmptyImage;
     private static final int HEART_SIZE = 60;
@@ -66,7 +67,8 @@ public class Game extends JPanel {
         gameLoop = new GameLoop (this);
 
         // Load assets (bg + lives)
-        grassImage = new ImageIcon("Entities/Background/grass.png").getImage();
+        grassImage = new ImageIcon("Entities/Background/Grass BG.png").getImage();          //REPLACED
+        grassOverlay = new ImageIcon("Entities/Background/BG Overlay.png").getImage();      //NEW
         lifeFullImage = new ImageIcon("Entities/UserInterface/life_Full.png").getImage();
         lifeEmptyImage = new ImageIcon("Entities/UserInterface/life_Empty.png").getImage();
 
@@ -221,9 +223,21 @@ public class Game extends JPanel {
         if(this.activePowerup != null){
             activePowerup.draw(g);
         }
+
         if (player != null) {
-            player.draw(g); // draw player on top
-            drawLivesHUD(g, player);
+            player.draw(g); // draw player on top (NEW)
+        }
+
+        //draw overlay (NEW)
+        if (grassOverlay != null && grassOverlay.getWidth(null) != -1) {
+            g.drawImage(grassOverlay, 0, 0, getWidth(), getHeight(), this);
+        } else {
+            g.setColor(new Color(34, 139, 34));
+            g.fillRect(0, 0, getWidth(), getHeight());
+        }
+
+        if (player != null) {
+            drawLivesHUD(g, player); //draw GUI on top (NEW)
         }
 
         // Wave display
