@@ -74,34 +74,35 @@ public class Bullet extends Entity{
         }
 
         // Bullet vs enemy collision
-            for (Enemy enemy : enemies) {
-                if (!enemiesToRemove.contains(enemy) && this.getBounds().intersects(enemy.getBounds())) {
-                    bulletsToRemove.add(this);
+        Random powerupRandom = new Random(); // For random powerup drops
+        for (Enemy enemy : enemies) {
+            if (!enemiesToRemove.contains(enemy) && this.getBounds().intersects(enemy.getBounds())) {
+                enemy.deductHealth();
+                bulletsToRemove.add(this);
+                if(enemy.getHealth() == 0){
                     enemiesToRemove.add(enemy);
-                    System.out.println("[Game] Enemy hit by bullet!");
-                    // Powerup drop
-                    Random dropChance = new Random();
-                    if(dropChance.nextInt(10) == 0 && activePowerup == null){
-                        Random powerupType = new Random();
-                        int powerup = powerupType.nextInt(3)+1;
-                        switch (powerup) {
-                            case 1:
-                                game.setActivePowerup(new FireRatePowerup(enemy.getX(), enemy.getY()));
-                                break;
-                            case 2:
-                                game.setActivePowerup(new MovementSpeedPowerup(enemy.getX(), enemy.getY()));
-                                break;
-                            case 3:
-                                game.setActivePowerup(new HealPowerUp(enemy.getX(), enemy.getY()));
-                                break;
-                        
-                            default:
-                                break;
-                        }
-                    }
-                    break;
                 }
+                System.out.println("[Game] Enemy hit by bullet!");
+                // Powerup drop
+                if(powerupRandom.nextInt(10) == 0 && activePowerup == null){
+                    int powerup = powerupRandom.nextInt(3)+1;
+                    switch (powerup) {
+                        case 1:
+                            game.setActivePowerup(new FireRatePowerup(enemy.getX(), enemy.getY()));
+                            break;
+                        case 2:
+                            game.setActivePowerup(new MovementSpeedPowerup(enemy.getX(), enemy.getY()));
+                            break;
+                        case 3:
+                            game.setActivePowerup(new HealPowerUp(enemy.getX(), enemy.getY()));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                break;
             }
+        }
     }
 
     @Override

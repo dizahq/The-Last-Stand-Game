@@ -17,6 +17,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.util.Map;
+import java.util.Random;
 
 public class Game extends JPanel {
     private Player player;
@@ -158,7 +159,7 @@ public class Game extends JPanel {
         // --- Enemy respawn waves ---
         while (currentRespawn < respawns) {
             if (System.currentTimeMillis() - lastEnemySpawnTime > spawnRate) {
-                spawnEnemies(spawnCount);
+                spawnEnemies(currentLevel, spawnCount);
             } else {
                 break;
             }
@@ -266,7 +267,7 @@ public class Game extends JPanel {
         enemies.clear(); // clear leftover enemies from previous wave
         bullets.clear(); // clear leftover bullets
         currentRespawn = 0;
-        spawnCount = ((currentLevel * currentLevel) + 20) / 3;
+        spawnCount = ((currentLevel * currentLevel) - (currentLevel * 2) + 20) / respawns;
 
         // Increment wave 
         currentWave++;
@@ -274,14 +275,32 @@ public class Game extends JPanel {
         waveBannerStartTime = System.currentTimeMillis();
         System.out.println("[Game] Wave " + currentWave + " started.");
 
-        spawnEnemies(spawnCount);
+        spawnEnemies(currentLevel, spawnCount);
     }
 
-    public void spawnEnemies(int enemyCount) {
+    public void spawnEnemies(int currentLevel, int enemyCount) {
+        int specialEnemySpawnChance = currentLevel * 5;
+        Random specialEnemyRandom = new Random();
         for (int i = 0; i < enemyCount; i++) {
-            Enemy e = new Enemy(0, 0, panelWidth, panelHeight);
-            e.respawn(); // random edge position
-            enemies.add(e);
+            Enemy enemy;
+            if(specialEnemyRandom.nextInt(100)+1 <= specialEnemySpawnChance){
+                int specialEnemyType = specialEnemyRandom.nextInt(2)+1;
+                switch (specialEnemyType) {
+                    case 1:
+                        enemy = new SpeedyEnemy(0, 0, panelWidth, panelHeight);
+                        break;
+                    case 2:
+                        enemy = new TankyEnemy(0, 0, panelWidth, panelHeight);
+                        break;
+                    default:
+                        enemy = new BasicEnemy(0, 0, panelWidth, panelHeight);
+                        break;
+                }
+            }else{
+                enemy = new BasicEnemy(0, 0, panelWidth, panelHeight);
+            }
+            enemy.respawn(); // random edge position
+            enemies.add(enemy);
         }
         lastEnemySpawnTime = System.currentTimeMillis();
         currentRespawn++;

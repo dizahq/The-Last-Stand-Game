@@ -6,10 +6,9 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.util.*;
 
-public class Enemy extends Entity {
+public abstract class Enemy extends Entity {
 
     //Movement and behavior constants 
-    private static final int SPEED = 1; //pixels per frame
     private static final int ATTACK_RANGE = 55; //distnace in pixels to trigger attack
     private static final int CELL = 16; // A* grid cell size in pixels 
     private static final int PATH_REFRESH = 60; // frames between path recalculations
@@ -22,6 +21,10 @@ public class Enemy extends Entity {
     private int lastTargetY = -1; // last known player Y for move threshold check
     private int stuckTimer = 0; //counts frames thep enemy hasn't moved
     private int lastX, lastY; //position last frame, used for stuck detection
+
+    // Attributes:
+    private int speed = 1; //movement speed
+    private int health = 1; //number of hits to kill
 
     //Enemy behavior states
     private enum State  { WALK, ATTACK }
@@ -207,8 +210,8 @@ public class Enemy extends Entity {
                 return false;
             }
 
-            double moveX = (dx / len) * SPEED;
-            double moveY = (dy / len) * SPEED;
+            double moveX = (dx / len) * speed;
+            double moveY = (dy / len) * speed;
 
             int newX = Math.max(0, Math.min(panelWidth  - width,  (int) Math.round(x + moveX)));
             int newY = Math.max(0, Math.min(panelHeight - height, (int) Math.round(y + moveY)));
@@ -417,4 +420,18 @@ public class Enemy extends Entity {
     }
 
     public boolean isAttacking() { return state == State.ATTACK; }
+
+    public void deductHealth(){
+        this.health--;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+    public int getHealth() {
+        return health;
+    }
+    public void setHealth(int health) {
+        this.health = health;
+    }
 }
