@@ -2,18 +2,15 @@ package Codes;
 
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
 import java.util.function.Consumer;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-
-//new
-import java.awt.Graphics;
-import java.awt.Image;
 
 public class MainMenuPanel extends JPanel{
     private MainLayeredPane rootLayeredPane;
@@ -107,6 +104,7 @@ public class MainMenuPanel extends JPanel{
         if (data != null) {
             // Restore game state from the save file
             game.setCurrentLevel(data.currentLevel);
+            game.setCurrentWave(data.currentWave);
             game.setLives(data.lives);
             game.setPlayerPosition(data.playerX, data.playerY);
             System.out.println("[MainMenuPanel] Continuing from: " + data);
@@ -114,6 +112,7 @@ public class MainMenuPanel extends JPanel{
             // Save file wass corrupt/missing
             System.err.println("[MainMenuPanel] No valid save found, startingnew.");
             game.setCurrentLevel(0);
+            game.setCurrentWave(0);
             game.setLives(4);
         }
 
