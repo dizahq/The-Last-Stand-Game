@@ -198,16 +198,17 @@ public class Game extends JPanel {
         }
 
         // Draw game objects
-        for (Obstacle obs : obstacles) obs.draw(g);
         for (Bullet bullet : bullets) bullet.draw(g);
         for (Enemy enemy : enemies) enemy.draw(g);
         if(this.activePowerup != null){
             activePowerup.draw(g);
         }
 
-        if (player != null) {
-            player.draw(g); // draw player on top (NEW)
-        }
+        List<GameObject> drawables = new ArrayList<>();
+        drawables.addAll(obstacles);
+        if (player != null) drawables.add(player);
+        drawables.sort((a, b) -> Integer.compare(a.getY(), b.getY()));
+        for (GameObject obj : drawables) obj.draw(g);
 
         //draw overlay (NEW)
         if (grassOverlay != null && grassOverlay.getWidth(null) != -1) {
@@ -290,15 +291,20 @@ public class Game extends JPanel {
         bullets.clear(); // clear leftover bullets
         obstacles.clear();
 
-        switch (currentLevel) {
-            case 0:
-                obstacles.add(new Obstacle(200, 200, 50, 200, panelWidth, panelHeight));
-            break;
-            case 1:
-                obstacles.add(new Obstacle(400, 300, getHeight()/2 - 200, getWidth()/2 - 50, panelWidth, panelHeight));
-                obstacles.add(new Obstacle(700, 400, getHeight()/2 - 200, getWidth()/2 - 50, panelWidth, panelHeight));
-            break;
+
+        if (currentLevel == 0 || currentLevel == 2 || currentLevel == 5){
+            obstacles.add(new Obstacle(getWidth() /2 - 300, 150, 220, 60, panelWidth, panelHeight, 1));
+            obstacles.add(new Obstacle(getWidth() /2 + 100,300, 220, 60, panelWidth, panelHeight, 1));
+            obstacles.add(new Obstacle(getWidth() /2 - 500, getHeight()/2 -100, 80, 300, panelWidth, panelHeight, 2));
         }
+
+        if (currentLevel == 1 || currentLevel == 4){
+            obstacles.add(new Obstacle(getWidth() /2 -400,300, 220, 60, panelWidth, panelHeight, 1));
+            obstacles.add(new Obstacle(getWidth() /2, getHeight() - 200, 220, 60, panelWidth, panelHeight, 1));
+            obstacles.add(new Obstacle(getWidth() - 300, getHeight()/2 -500, 80, 400, panelWidth, panelHeight, 2));
+            obstacles.add(new Obstacle(getWidth()/2 - 100, getHeight()/2 -100, 80, 400, panelWidth, panelHeight, 2));
+        }
+
 
         
         currentRespawn = 0;
