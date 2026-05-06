@@ -288,6 +288,19 @@ public class Game extends JPanel {
         }
         enemies.clear(); // clear leftover enemies from previous wave
         bullets.clear(); // clear leftover bullets
+        obstacles.clear();
+
+        switch (currentLevel) {
+            case 0:
+                obstacles.add(new Obstacle(200, 200, 50, 200, panelWidth, panelHeight));
+            break;
+            case 1:
+                obstacles.add(new Obstacle(400, 300, getHeight()/2 - 200, getWidth()/2 - 50, panelWidth, panelHeight));
+                obstacles.add(new Obstacle(700, 400, getHeight()/2 - 200, getWidth()/2 - 50, panelWidth, panelHeight));
+            break;
+        }
+
+        
         currentRespawn = 0;
         spawnCount = ((currentLevel * currentLevel) - (currentLevel * 2) + 20) / respawns;
         spawnRate = spawnRate + (int)(currentLevel * 250);

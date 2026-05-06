@@ -63,6 +63,7 @@ public class Player extends Entity {
 
         // Load attack effect
         // Cardinal attack sprites
+
         attackUp = new ImageIcon("Entities/Player/Attack/atk_up1.png").getImage();
         attackDown = new ImageIcon("Entities/Player/Attack/atk_down1.png").getImage();
         attackLeft = new ImageIcon("Entities/Player/Attack/atk_left1.png").getImage();

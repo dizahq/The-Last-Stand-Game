@@ -8,6 +8,7 @@ public class GameLoop implements Runnable {
 
     private static final int TARGET_FPS = 60;
     private static final long OPTIMAL_TIME = 1_000_000_000L / TARGET_FPS;
+    private static final long MAX_LAG = OPTIMAL_TIME * 5; 
 
     public GameLoop(Game game) {
         this.game = game;
@@ -49,7 +50,17 @@ public class GameLoop implements Runnable {
             notifyAll(); 
         }
 
-        if (gameThread != null) gameThread.interrupt();
+        if (gameThread != null) {
+            gameThread.interrupt();
+
+            try {
+                gameThread.join(500); // wait up to 500ms for clean exit
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            gameThread = null; // ← also null it out so startThread() can proceed
+        }
+        
         System.out.println("[Game] Game stopped.");
     }
 
@@ -72,12 +83,15 @@ public class GameLoop implements Runnable {
                     }
                 }
                 lastTime = System.nanoTime(); // Reset timer after pause
+                lag = 0L; //Reset lag
             }
 
             long now = System.nanoTime();
             long elapsed = now - lastTime;
             lastTime = now;
             lag += elapsed;
+            if (lag > MAX_LAG) lag = MAX_LAG; // ← add this
+            
 
             // Fixed update steps
             while (lag >= OPTIMAL_TIME) {
